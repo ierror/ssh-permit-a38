@@ -1,0 +1,16 @@
+{
+  "hosts": [
+    {
+      "hostname": "urlsmash.403.io",
+      "authorized": []
+    }
+  ],
+  "users": [
+    {
+      "name": "a",
+      "public_key": "b"
+    }
+  ],
+  "groups": [],
+  "last_modified": ""
+}

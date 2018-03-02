@@ -1,0 +1,11 @@
+[package]
+name = "ssh-permit-a38"
+description = "CentralmManagment and deployment for SSH keys"
+version = "0.0.1"
+authors = ["Bernhard Janetzki <boerni@gmail.com>"]
+
+[dependencies]
+clap = "2.30"
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
