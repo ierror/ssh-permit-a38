@@ -1,13 +1,20 @@
 extern crate serde;
 extern crate serde_json;
 
+use chrono::Utc;
+use std::error::Error;
+use std::fmt;
+use std::fs::File;
+use std::path::Path;
+
 #[derive(Serialize, Deserialize)]
 pub struct Database {
     pub hosts: Vec<Host>,
     pub users: Vec<User>,
-    pub groups: Vec<Group>,
+    pub user_groups: Vec<UserGroup>,
 
-    pub last_modified: String,
+    pub modified_at: String,
+    pub version: String,
 }
 
 impl Default for Database {
@@ -15,8 +22,9 @@ impl Default for Database {
         Database {
             hosts: vec![],
             users: vec![],
-            groups: vec![],
-            last_modified: "".to_owned(),
+            user_groups: vec![],
+            modified_at: "".to_owned(),
+            version: "1.0".to_owned(),
         }
     }
 }
@@ -24,7 +32,14 @@ impl Default for Database {
 #[derive(Serialize, Deserialize)]
 pub struct Host {
     pub hostname: String,
-    pub authorized: Vec<User>,
+    pub authorized_users: Vec<User>,
+    pub authorized_groups: Vec<UserGroup>,
+}
+
+impl fmt::Display for Host {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.hostname)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -33,8 +48,32 @@ pub struct User {
     pub public_key: String,
 }
 
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 #[derive(Serialize, Deserialize)]
-pub struct Group {
+pub struct UserGroup {
     pub name: String,
     pub members: Vec<User>,
+}
+
+impl fmt::Display for UserGroup {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
+pub fn load<P: AsRef<Path>>(path: P) -> Result<Database, Box<Error>> {
+    let file = File::open(path)?;
+    Ok(serde_json::from_reader(file)?)
+}
+
+pub fn save<P: AsRef<Path>>(path: P, db: &mut Database) -> () {
+    let file = File::create(path).unwrap();
+    let now = Utc::now();
+    db.modified_at = format!("{}", now.to_owned());
+    serde_json::to_writer_pretty(&file, &db).expect("Unable to write database file.");
 }

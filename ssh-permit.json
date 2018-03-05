@@ -2,7 +2,18 @@
   "hosts": [
     {
       "hostname": "urlsmash.403.io",
-      "authorized": []
+      "authorized_users": [],
+      "authorized_groups": []
+    },
+    {
+      "hostname": "localhost",
+      "authorized_users": [],
+      "authorized_groups": []
+    },
+    {
+      "hostname": "foo",
+      "authorized_users": [],
+      "authorized_groups": []
     }
   ],
   "users": [
@@ -11,6 +22,7 @@
       "public_key": "b"
     }
   ],
-  "groups": [],
-  "last_modified": ""
+  "user_groups": [],
+  "modified_at": "2018-03-05 16:28:54.524564 UTC",
+  "version": "0.0.1"
 }
