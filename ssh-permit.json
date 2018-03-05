@@ -1,28 +1,22 @@
 {
   "hosts": [
     {
-      "hostname": "urlsmash.403.io",
-      "authorized_users": [],
-      "authorized_groups": []
-    },
-    {
-      "hostname": "localhost",
-      "authorized_users": [],
-      "authorized_groups": []
-    },
-    {
       "hostname": "foo",
       "authorized_users": [],
-      "authorized_groups": []
+      "authorized_user_groups": []
     }
   ],
   "users": [
     {
-      "name": "a",
-      "public_key": "b"
+      "name": "boerni@gmail",
+      "public_key": "AAAAB3NzaC1yc2EAAAADAQABAAACAQDCgIcHBcyRYjRq51YhcduL0ifmd6f/glH+LniKzKZwXfplO3T/G1hk7C1KDwPzfRMS/mVPEIn8pOJ0yd1Y+fbh0hwlUz8LwIuCuos38bBiRUDaUcrwxOvFkFV3cre9pfa7u3WaKt7VZT6ac0AoFyRz36s15uPXa2yH8AX+yybL1UYswO9V3P5s4kacTC/0CRr+ltSjSa7C7W6U349jOfhE2H3orr5+Fe8kY10zcyVJsohiuOaiCgaeeSddAcr2t2koTa2/Wl0tNr6d8RAEnloF7EI9TKlshyVzfMaRDGFx1NSJWVupCaG2wuZzGG3gvuDjduCNqF0z4oOlm2y2TUdk1oOLv5037YdQzhqodnrNDeGvS7ZqjapSOpgN7UzH86J/HAzR/39BXm4UMBGL8YZJtGjo1hVePtBdqviQFhFRlHMbQGwQyJJpq2Usmr+MPmy5xYHdllrD1JzrRmaeaiVLPgDhbh13MIago2SVsbe95eBMdGAE/Bast34i6QuKyDqV64DkEBvJFgBeUjFGZS82+4fR/ARVj1J6kofQbbSuDYdASbZNMSFAAcp+cYd930UTxF5gicaMkWLNdrTzsVJ0P3rgazVsYFkJOrp3wTLdfsceApJaI43dC4ZUphXRvo5BjmayJitupkr7pblepMYXNfCvcOgbC5yuQVHDm6P49Q== boerni@steppenwol"
+    },
+    {
+      "name": "boerni@gmail.com",
+      "public_key": "AAAAB3NzaC1yc2EAAAADAQABAAACAQDCgIcHBcyRYjRq51YhcduL0ifmd6f/glH+LniKzKZwXfplO3T/G1hk7C1KDwPzfRMS/mVPEIn8pOJ0yd1Y+fbh0hwlUz8LwIuCuos38bBiRUDaUcrwxOvFkFV3cre9pfa7u3WaKt7VZT6ac0AoFyRz36s15uPXa2yH8AX+yybL1UYswO9V3P5s4kacTC/0CRr+ltSjSa7C7W6U349jOfhE2H3orr5+Fe8kY10zcyVJsohiuOaiCgaeeSddAcr2t2koTa2/Wl0tNr6d8RAEnloF7EI9TKlshyVzfMaRDGFx1NSJWVupCaG2wuZzGG3gvuDjduCNqF0z4oOlm2y2TUdk1oOLv5037YdQzhqodnrNDeGvS7ZqjapSOpgN7UzH86J/HAzR/39BXm4UMBGL8YZJtGjo1hVePtBdqviQFhFRlHMbQGwQyJJpq2Usmr+MPmy5xYHdllrD1JzrRmaeaiVLPgDhbh13MIago2SVsbe95eBMdGAE/Bast34i6QuKyDqV64DkEBvJFgBeUjFGZS82+4fR/ARVj1J6kofQbbSuDYdASbZNMSFAAcp+cYd930UTxF5gicaMkWLNdrTzsVJ0P3rgazVsYFkJOrp3wTLdfsceApJaI43dC4ZUphXRvo5BjmayJitupkr7pblepMYXNfCvcOgbC5yuQVHDm6P49Q== boerni@steppenwol"
     }
   ],
   "user_groups": [],
-  "modified_at": "2018-03-05 16:28:54.524564 UTC",
+  "modified_at": "2018-03-05 20:52:02.221664 UTC",
   "version": "0.0.1"
 }

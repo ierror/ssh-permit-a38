@@ -9,6 +9,7 @@ extern crate serde_derive;
 extern crate clap;
 
 use clap::{App, Arg, SubCommand};
+use std::io;
 
 mod database;
 mod flow;
@@ -53,7 +54,7 @@ fn main() {
                     SubCommand::with_name("list")
                 ),
         )
-        // User
+        // user
         .subcommand(
             SubCommand::with_name("user")
                 // user add
@@ -102,8 +103,7 @@ fn main() {
             let mut host_new = vec![
                 database::Host {
                     hostname: hostname_to_add.to_owned(),
-                    authorized_users: vec![],
-                    authorized_groups: vec![],
+                    ..Default::default()
                 },
             ];
 
@@ -123,7 +123,10 @@ fn main() {
         } else if let Some(_matches) = matches.subcommand_matches("list") {
             for host in &db.hosts {
                 println!("\n{}", host.hostname);
-                println!("{}", (0..host.hostname.len()).map(|_| "=").collect::<String>());
+                println!(
+                    "{}",
+                    (0..host.hostname.len()).map(|_| "=").collect::<String>()
+                );
 
                 println!("\n## Authorized Users");
                 for user in &host.authorized_users {
@@ -131,9 +134,58 @@ fn main() {
                 }
 
                 println!("\n## Authorized Groups");
-                for group in &host.authorized_groups {
+                for group in &host.authorized_user_groups {
                     println!("\n* {}", group);
                 }
+            }
+        }
+    }
+
+    // user
+    if let Some(matches) = matches.subcommand_matches("user") {
+        if let Some(matches) = matches.subcommand_matches("add") {
+            let user_to_add = matches.value_of("user").unwrap();
+
+            // check user is not present
+            let index = db.users.iter().position(|ref h| h.name == user_to_add);
+            if !index.is_none() {
+                flow::error(format!("User {} already exists.", user_to_add));
+            }
+
+            // read public key
+            flow::info(format!(
+                "Paste the public key of {} and press the Enter key:",
+                user_to_add
+            ));
+            let mut public_key = String::new();
+            io::stdin()
+                .read_line(&mut public_key)
+                .ok()
+                .expect("Couldn't read line");
+
+            // add new user
+            let mut user_new = vec![
+                database::User {
+                    name: user_to_add.to_owned(),
+                    public_key: public_key.trim_right().trim_left().to_owned(),
+                },
+            ];
+
+            db.users.append(&mut user_new);
+        } else if let Some(matches) = matches.subcommand_matches("remove") {
+            let user_to_del = matches.value_of("user").unwrap();
+
+            // check user exist
+            let index = db.users.iter().position(|ref u| u.name == user_to_del);
+            if index.is_none() {
+                flow::error(format!("User {} not known.", user_to_del));
+            }
+
+            db.users.retain(|u| u.name != user_to_del);
+        } else if let Some(_matches) = matches.subcommand_matches("list") {
+            for user in &db.users {
+                println!("\n{}", user.name);
+                println!("{}", (0..user.name.len()).map(|_| "=").collect::<String>());
             }
         }
     }

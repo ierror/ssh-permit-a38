@@ -7,6 +7,8 @@ use std::fmt;
 use std::fs::File;
 use std::path::Path;
 
+//const SCHEMA_VERSION: String = "1.0".to_string();
+
 #[derive(Serialize, Deserialize)]
 pub struct Database {
     pub hosts: Vec<Host>,
@@ -33,7 +35,17 @@ impl Default for Database {
 pub struct Host {
     pub hostname: String,
     pub authorized_users: Vec<User>,
-    pub authorized_groups: Vec<UserGroup>,
+    pub authorized_user_groups: Vec<UserGroup>,
+}
+
+impl Default for Host {
+    fn default() -> Host {
+        Host {
+            hostname: "".to_owned(),
+            authorized_users: vec![],
+            authorized_user_groups: vec![],
+        }
+    }
 }
 
 impl fmt::Display for Host {
