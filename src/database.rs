@@ -7,7 +7,7 @@ use std::fmt;
 use std::fs::File;
 use std::path::Path;
 
-//const SCHEMA_VERSION: String = "1.0".to_string();
+const SCHEMA_VERSION: &'static str = "1.0.0";
 
 #[derive(Serialize, Deserialize)]
 pub struct Database {
@@ -25,23 +25,49 @@ impl Default for Database {
             hosts: vec![],
             users: vec![],
             user_groups: vec![],
-            modified_at: "".to_owned(),
-            version: "1.0".to_owned(),
+            modified_at: String::from(""),
+            version: SCHEMA_VERSION.to_owned(),
         }
+    }
+}
+
+impl Database {
+    pub fn load<P: AsRef<Path>>(&self, path: P) -> Result<Database, Box<Error>> {
+        let file = File::open(path)?;
+        Ok(serde_json::from_reader(file)?)
+    }
+
+    pub fn save<P: AsRef<Path>>(&mut self, path: P) {
+        let file = File::create(path).unwrap();
+        let now = Utc::now();
+        self.modified_at = format!("{}", now.to_owned());
+        serde_json::to_writer_pretty(&file, &self).expect("Unable to write database file.");
+    }
+
+    pub fn host_get(&mut self, hostname: &str) -> Option<&mut Host> {
+        self.hosts.iter()
+            .position(|ref h| h.hostname == hostname)
+            .map(move |i| &mut self.hosts[i])
+    }
+
+    pub fn user_get(&self, user_id: &str) -> Option<&User> {
+        self.users.iter()
+            .position(|ref u| u.user_id == user_id)
+            .map(|i| &self.users[i])
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Host {
     pub hostname: String,
-    pub authorized_users: Vec<User>,
-    pub authorized_user_groups: Vec<UserGroup>,
+    pub authorized_users: Vec<String>,
+    pub authorized_user_groups: Vec<String>,
 }
 
 impl Default for Host {
     fn default() -> Host {
         Host {
-            hostname: "".to_owned(),
+            hostname: String::from(""),
             authorized_users: vec![],
             authorized_user_groups: vec![],
         }
@@ -56,36 +82,25 @@ impl fmt::Display for Host {
 
 #[derive(Serialize, Deserialize)]
 pub struct User {
-    pub name: String,
+    pub user_id: String,
     pub public_key: String,
 }
 
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.user_id)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct UserGroup {
-    pub name: String,
+    pub group_id: String,
     pub members: Vec<User>,
 }
 
 impl fmt::Display for UserGroup {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.group_id)
     }
 }
 
-pub fn load<P: AsRef<Path>>(path: P) -> Result<Database, Box<Error>> {
-    let file = File::open(path)?;
-    Ok(serde_json::from_reader(file)?)
-}
-
-pub fn save<P: AsRef<Path>>(path: P, db: &mut Database) -> () {
-    let file = File::create(path).unwrap();
-    let now = Utc::now();
-    db.modified_at = format!("{}", now.to_owned());
-    serde_json::to_writer_pretty(&file, &db).expect("Unable to write database file.");
-}

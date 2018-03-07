@@ -32,95 +32,86 @@ fn main() {
         // host
         .subcommand(
             SubCommand::with_name("host")
-                // host add
-                .about("Add or remove a host")
+                // host <host>
+                .about("Host related actions")
+                        .arg(Arg::with_name("host")
+                            .help("Host")
+                            .index(1))
+                // host <host> add
                 .subcommand(
                     SubCommand::with_name("add")
-                        .arg(Arg::with_name("host")
-                            .help("Add a new host")
-                            .index(1)
-                            .required(true)),
                 )
-                // host remove
+                // host <host> remove
                 .subcommand(
                     SubCommand::with_name("remove")
-                        .arg(Arg::with_name("host")
-                            .help("Remove a host")
-                            .index(1)
-                            .required(true)),
                 )
                 // host list
                 .subcommand(
                     SubCommand::with_name("list")
-                ),
+                )
         )
         // user
         .subcommand(
             SubCommand::with_name("user")
-                // user add
-                .about("Add or remove a user")
+                // user <host>
+                .about("User related actions")
+                        .arg(Arg::with_name("user")
+                            .help("User")
+                            .index(1))
+                // user <user> add
                 .subcommand(
                     SubCommand::with_name("add")
-                        .arg(Arg::with_name("user")
-                            .help("Add a new user")
-                            .index(1)
-                            .required(true)),
                 )
-                // user remove
+                // user <user> remove
                 .subcommand(
                     SubCommand::with_name("remove")
-                        .arg(Arg::with_name("user")
-                            .help("Remove an user")
-                            .index(1)
-                            .required(true)),
                 )
-                // user  list
+                // user list
                 .subcommand(
                     SubCommand::with_name("list")
-                ),
+                )
+                // user <user> grant <host>
+                .subcommand(
+                    SubCommand::with_name("grant")
+                        .arg(Arg::with_name("host")
+                            .help("Host")
+                            .index(1)
+                            .required(true))
+                )
         )
         .get_matches();
 
     let database_file = matches.value_of("database").unwrap_or("ssh-permit.json");
     println!("Value for config: {}", database_file);
 
-    let mut db = database::load(database_file).unwrap();
+    let mut db = database::Database {
+        ..Default::default()
+    }.load(database_file).unwrap();
 
     // host
     if let Some(matches) = matches.subcommand_matches("host") {
-        if let Some(matches) = matches.subcommand_matches("add") {
-            let hostname_to_add = matches.value_of("host").unwrap();
+        let hostname = matches.value_of("host").unwrap_or("");
 
-            // check host is not present
-            let index = db.hosts
-                .iter()
-                .position(|ref h| h.hostname == hostname_to_add);
-            if !index.is_none() {
-                flow::error(format!("Hostname {} already exists.", hostname_to_add));
+        if matches.subcommand_matches("add").is_some() {
+            if db.host_get(hostname).is_some() {
+                flow::error(&format!("Hostname {} already exists", hostname));
             }
 
             // add new host
             let mut host_new = vec![
                 database::Host {
-                    hostname: hostname_to_add.to_owned(),
+                    hostname: hostname.to_owned(),
                     ..Default::default()
                 },
             ];
 
             db.hosts.append(&mut host_new);
-        } else if let Some(matches) = matches.subcommand_matches("remove") {
-            let hostname_to_del = matches.value_of("host").unwrap();
-
-            // check host exist
-            let index = db.hosts
-                .iter()
-                .position(|ref h| h.hostname == hostname_to_del);
-            if index.is_none() {
-                flow::error(format!("Hostname {} not known.", hostname_to_del));
+        } else if matches.subcommand_matches("remove").is_some() {
+            if !db.host_get(hostname).is_some() {
+                flow::error(&format!("Hostname {} not known", hostname));
             }
-
-            db.hosts.retain(|h| h.hostname != hostname_to_del);
-        } else if let Some(_matches) = matches.subcommand_matches("list") {
+            db.hosts.retain(|h| h.hostname != hostname);
+        } else if matches.subcommand_matches("list").is_some() {
             for host in &db.hosts {
                 println!("\n{}", host.hostname);
                 println!(
@@ -143,49 +134,65 @@ fn main() {
 
     // user
     if let Some(matches) = matches.subcommand_matches("user") {
-        if let Some(matches) = matches.subcommand_matches("add") {
-            let user_to_add = matches.value_of("user").unwrap();
+        let user_id = matches.value_of("user").unwrap_or("");
 
+        if matches.subcommand_matches("add").is_some() {
             // check user is not present
-            let index = db.users.iter().position(|ref h| h.name == user_to_add);
-            if !index.is_none() {
-                flow::error(format!("User {} already exists.", user_to_add));
+            if db.user_get(user_id).is_some() {
+                flow::error(&format!("User {} already exists", user_id));
             }
 
             // read public key
-            flow::info(format!(
+            flow::info(&format!(
                 "Paste the public key of {} and press the Enter key:",
-                user_to_add
+                user_id
             ));
             let mut public_key = String::new();
             io::stdin()
                 .read_line(&mut public_key)
                 .ok()
-                .expect("Couldn't read line");
+                .expect("Couldn't read public key");
+
+            // TODO:; daring assumption, validate...
+            if !public_key.starts_with("ssh-") {
+                flow::error("Invalid public ssh key format")
+            }
 
             // add new user
             let mut user_new = vec![
                 database::User {
-                    name: user_to_add.to_owned(),
+                    user_id: user_id.to_owned(),
                     public_key: public_key.trim_right().trim_left().to_owned(),
                 },
             ];
 
             db.users.append(&mut user_new);
-        } else if let Some(matches) = matches.subcommand_matches("remove") {
-            let user_to_del = matches.value_of("user").unwrap();
-
+        } else if matches.subcommand_matches("remove").is_some() {
             // check user exist
-            let index = db.users.iter().position(|ref u| u.name == user_to_del);
-            if index.is_none() {
-                flow::error(format!("User {} not known.", user_to_del));
+            if db.user_get(user_id).is_none() {
+                flow::error(&format!("User {} not known", user_id));
             }
 
-            db.users.retain(|u| u.name != user_to_del);
+            db.users.retain(|u| u.user_id != user_id);
         } else if let Some(_matches) = matches.subcommand_matches("list") {
             for user in &db.users {
-                println!("\n{}", user.name);
-                println!("{}", (0..user.name.len()).map(|_| "=").collect::<String>());
+                println!("\n{}", user.user_id);
+                println!(
+                    "{}",
+                    (0..user.user_id.len()).map(|_| "=").collect::<String>()
+                );
+            }
+        } else if let Some(matches) = matches.subcommand_matches("grant") {
+            // check user exist
+            if db.user_get(user_id).is_none() {
+                flow::error(&format!("User {} not known", user_id));
+            }
+
+            let hostname = matches.value_of("host").unwrap();
+            if let Some(host) = db.host_get(hostname) {
+                host.authorized_users.append(&mut vec![String::from(user_id)]);
+            } else {
+                flow::error(&format!("Hostname {} not known", hostname));
             }
         }
     }
@@ -208,21 +215,5 @@ fn main() {
         ..Default::default()
     };*/
 
-    /*    use ssh2::Session;
-
-    // Almost all APIs require a `Session` to be available
-    let sess = Session::new().unwrap();
-    let mut agent = sess.agent().unwrap();
-
-    // Connect the agent and request a list of identities
-    agent.connect().unwrap();
-    agent.list_identities().unwrap();
-
-    for identity in agent.identities() {
-        //let identity = identity.unwrap(); // assume no I/O errors
-        //let pubkey = identity.blob();
-        //println!(">>>>>>>>>>>>>>{}", identity);
-    }*/
-
-    database::save(&database_file, &mut db);
+    db.save(&database_file);
 }
