@@ -16,7 +16,7 @@ pub struct Database {
     pub user_groups: Vec<UserGroup>,
 
     pub modified_at: String,
-    pub version: String,
+    pub schema_version: String,
 }
 
 impl Default for Database {
@@ -26,7 +26,7 @@ impl Default for Database {
             users: vec![],
             user_groups: vec![],
             modified_at: String::from(""),
-            version: SCHEMA_VERSION.to_owned(),
+            schema_version: SCHEMA_VERSION.to_owned(),
         }
     }
 }
@@ -44,16 +44,32 @@ impl Database {
         serde_json::to_writer_pretty(&file, &self).expect("Unable to write database file.");
     }
 
-    pub fn host_get(&mut self, hostname: &str) -> Option<&mut Host> {
-        self.hosts.iter()
+    pub fn host_get(&self, hostname: &str) -> Option<&Host> {
+        self.hosts
+            .iter()
+            .position(|ref h| h.hostname == hostname)
+            .map(|i| &self.hosts[i])
+    }
+
+    pub fn host_get_mut(&mut self, hostname: &str) -> Option<&mut Host> {
+        self.hosts
+            .iter()
             .position(|ref h| h.hostname == hostname)
             .map(move |i| &mut self.hosts[i])
     }
 
     pub fn user_get(&self, user_id: &str) -> Option<&User> {
-        self.users.iter()
-            .position(|ref u| u.user_id == user_id)
+        self.users
+            .iter()
+            .position(|u| u.user_id == user_id)
             .map(|i| &self.users[i])
+    }
+
+    pub fn is_user_granted(&self, user: &User, host: &Host) -> bool {
+        host.authorized_users
+            .iter()
+            .position(|au| au == &user.user_id)
+            .is_some()
     }
 }
 
@@ -62,6 +78,7 @@ pub struct Host {
     pub hostname: String,
     pub authorized_users: Vec<String>,
     pub authorized_user_groups: Vec<String>,
+    pub sync_todo: bool,
 }
 
 impl Default for Host {
@@ -70,6 +87,7 @@ impl Default for Host {
             hostname: String::from(""),
             authorized_users: vec![],
             authorized_user_groups: vec![],
+            sync_todo: true,
         }
     }
 }
@@ -103,4 +121,3 @@ impl fmt::Display for UserGroup {
         write!(f, "{}", self.group_id)
     }
 }
-

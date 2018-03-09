@@ -78,6 +78,14 @@ fn main() {
                             .index(1)
                             .required(true))
                 )
+                // user <user> grant <host>
+                .subcommand(
+                    SubCommand::with_name("revoke")
+                        .arg(Arg::with_name("host")
+                            .help("Host")
+                            .index(1)
+                            .required(true))
+                )
         )
         .get_matches();
 
@@ -86,26 +94,30 @@ fn main() {
 
     let mut db = database::Database {
         ..Default::default()
-    }.load(database_file).unwrap();
+    }.load(database_file)
+        .unwrap();
 
     // host
     if let Some(matches) = matches.subcommand_matches("host") {
         let hostname = matches.value_of("host").unwrap_or("");
 
         if matches.subcommand_matches("add").is_some() {
-            if db.host_get(hostname).is_some() {
-                flow::error(&format!("Hostname {} already exists", hostname));
+            {
+                if db.host_get(hostname).is_some() {
+                    flow::error(&format!("Hostname {} already exists", hostname));
+                }
             }
 
-            // add new host
-            let mut host_new = vec![
-                database::Host {
-                    hostname: hostname.to_owned(),
-                    ..Default::default()
-                },
-            ];
-
-            db.hosts.append(&mut host_new);
+            {
+                // add new host
+                let mut host_new = vec![
+                    database::Host {
+                        hostname: hostname.to_owned(),
+                        ..Default::default()
+                    },
+                ];
+                db.hosts.append(&mut host_new);
+            }
         } else if matches.subcommand_matches("remove").is_some() {
             if !db.host_get(hostname).is_some() {
                 flow::error(&format!("Hostname {} not known", hostname));
@@ -121,7 +133,7 @@ fn main() {
 
                 println!("\n## Authorized Users");
                 for user in &host.authorized_users {
-                    println!("\n* {}", user);
+                    println!("* {}", user);
                 }
 
                 println!("\n## Authorized Groups");
@@ -183,16 +195,51 @@ fn main() {
                 );
             }
         } else if let Some(matches) = matches.subcommand_matches("grant") {
-            // check user exist
-            if db.user_get(user_id).is_none() {
-                flow::error(&format!("User {} not known", user_id));
-            }
-
             let hostname = matches.value_of("host").unwrap();
+
             if let Some(host) = db.host_get(hostname) {
-                host.authorized_users.append(&mut vec![String::from(user_id)]);
+                if let Some(user) = db.user_get(user_id) {
+                    if db.is_user_granted(&user, &host) {
+                        flow::error(&format!(
+                            "{} already granted to access {}",
+                            user.user_id, hostname
+                        ));
+                    }
+                } else {
+                    flow::error(&format!("User {} not known", user_id));
+                }
             } else {
                 flow::error(&format!("Hostname {} not known", hostname));
+            }
+
+            // at this point it's save to mut db.host...
+            {
+                let host = db.host_get_mut(hostname).unwrap();
+                host.authorized_users
+                    .append(&mut vec![String::from(user_id)]);
+            }
+        } else if let Some(matches) = matches.subcommand_matches("revoke") {
+            let hostname = matches.value_of("host").unwrap();
+
+            if let Some(host) = db.host_get(hostname) {
+                if let Some(user) = db.user_get(user_id) {
+                    if !db.is_user_granted(&user, &host) {
+                        flow::error(&format!(
+                            "{} is not granted to access {}",
+                            user.user_id, hostname
+                        ));
+                    }
+                } else {
+                    flow::error(&format!("User {} not known", user_id));
+                }
+            } else {
+                flow::error(&format!("Hostname {} not known", hostname));
+            }
+
+            // at this point it's save to mut db.host...
+            {
+                let host = db.host_get_mut(hostname).unwrap();
+                host.authorized_users.retain(|u| u != user_id);
             }
         }
     }
