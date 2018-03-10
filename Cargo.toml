@@ -1,6 +1,6 @@
 [package]
 name = "ssh-permit-a38"
-description = "CentralmManagment and deployment for SSH keys"
+description = "Central managment and deployment for SSH keys"
 version = "0.0.1"
 authors = ["Bernhard Janetzki <boerni@gmail.com>"]
 
@@ -12,3 +12,5 @@ serde_derive = "1.0"
 chrono = "0.4"
 ssh2 = "0.3"
 colored = "1.6"
+difference = "2.0"
+term = "0.4"

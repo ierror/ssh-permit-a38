@@ -6,6 +6,14 @@ pub fn error(msg: &str) {
     exit(1);
 }
 
-pub fn info(msg: &str) {
+pub fn prompt(msg: &str) {
     println!("{}", msg.yellow());
+}
+
+pub fn warning(msg: &str) {
+    println!("{}", msg.yellow());
+}
+
+pub fn info(msg: &str) {
+    println!("{}", msg);
 }

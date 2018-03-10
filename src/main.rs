@@ -7,19 +7,23 @@ extern crate ssh2;
 #[macro_use]
 extern crate serde_derive;
 extern crate clap;
+extern crate difference;
+extern crate term;
 
 use clap::{App, Arg, SubCommand};
-use std::io;
 
+mod cli_flow;
 mod database;
-mod flow;
+mod subcommand_host;
+mod subcommand_sync;
+mod subcommand_user;
 
 fn main() {
     let matches = App::new("SSH Permit A38")
         // application info
         .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
         // --database
         .arg(
             Arg::with_name("database")
@@ -34,7 +38,7 @@ fn main() {
             SubCommand::with_name("host")
                 // host <host>
                 .about("Host related actions")
-                        .arg(Arg::with_name("host")
+                        .arg(Arg::with_name("host:port")
                             .help("Host")
                             .index(1))
                 // host <host> add
@@ -87,6 +91,12 @@ fn main() {
                             .required(true))
                 )
         )
+        // sync
+        .subcommand(
+            SubCommand::with_name("sync")
+                // Sync
+                .about("Sync pending changes to the related hosts")
+        )
         .get_matches();
 
     let database_file = matches.value_of("database").unwrap_or("ssh-permit.json");
@@ -99,48 +109,14 @@ fn main() {
 
     // host
     if let Some(matches) = matches.subcommand_matches("host") {
-        let hostname = matches.value_of("host").unwrap_or("");
+        let hostname = matches.value_of("host:port").unwrap_or("");
 
         if matches.subcommand_matches("add").is_some() {
-            {
-                if db.host_get(hostname).is_some() {
-                    flow::error(&format!("Hostname {} already exists", hostname));
-                }
-            }
-
-            {
-                // add new host
-                let mut host_new = vec![
-                    database::Host {
-                        hostname: hostname.to_owned(),
-                        ..Default::default()
-                    },
-                ];
-                db.hosts.append(&mut host_new);
-            }
+            subcommand_host::add(&mut db, &hostname);
         } else if matches.subcommand_matches("remove").is_some() {
-            if !db.host_get(hostname).is_some() {
-                flow::error(&format!("Hostname {} not known", hostname));
-            }
-            db.hosts.retain(|h| h.hostname != hostname);
+            subcommand_host::remove(&mut db, &hostname);
         } else if matches.subcommand_matches("list").is_some() {
-            for host in &db.hosts {
-                println!("\n{}", host.hostname);
-                println!(
-                    "{}",
-                    (0..host.hostname.len()).map(|_| "=").collect::<String>()
-                );
-
-                println!("\n## Authorized Users");
-                for user in &host.authorized_users {
-                    println!("* {}", user);
-                }
-
-                println!("\n## Authorized Groups");
-                for group in &host.authorized_user_groups {
-                    println!("\n* {}", group);
-                }
-            }
+            subcommand_host::list(&mut db, &hostname);
         }
     }
 
@@ -149,118 +125,21 @@ fn main() {
         let user_id = matches.value_of("user").unwrap_or("");
 
         if matches.subcommand_matches("add").is_some() {
-            // check user is not present
-            if db.user_get(user_id).is_some() {
-                flow::error(&format!("User {} already exists", user_id));
-            }
-
-            // read public key
-            flow::info(&format!(
-                "Paste the public key of {} and press the Enter key:",
-                user_id
-            ));
-            let mut public_key = String::new();
-            io::stdin()
-                .read_line(&mut public_key)
-                .ok()
-                .expect("Couldn't read public key");
-
-            // TODO:; daring assumption, validate...
-            if !public_key.starts_with("ssh-") {
-                flow::error("Invalid public ssh key format")
-            }
-
-            // add new user
-            let mut user_new = vec![
-                database::User {
-                    user_id: user_id.to_owned(),
-                    public_key: public_key.trim_right().trim_left().to_owned(),
-                },
-            ];
-
-            db.users.append(&mut user_new);
+            subcommand_user::add(&mut db, &user_id);
         } else if matches.subcommand_matches("remove").is_some() {
-            // check user exist
-            if db.user_get(user_id).is_none() {
-                flow::error(&format!("User {} not known", user_id));
-            }
-
-            db.users.retain(|u| u.user_id != user_id);
+            subcommand_user::remove(&mut db, &user_id);
         } else if let Some(_matches) = matches.subcommand_matches("list") {
-            for user in &db.users {
-                println!("\n{}", user.user_id);
-                println!(
-                    "{}",
-                    (0..user.user_id.len()).map(|_| "=").collect::<String>()
-                );
-            }
+            subcommand_user::list(&mut db);
         } else if let Some(matches) = matches.subcommand_matches("grant") {
             let hostname = matches.value_of("host").unwrap();
-
-            if let Some(host) = db.host_get(hostname) {
-                if let Some(user) = db.user_get(user_id) {
-                    if db.is_user_granted(&user, &host) {
-                        flow::error(&format!(
-                            "{} already granted to access {}",
-                            user.user_id, hostname
-                        ));
-                    }
-                } else {
-                    flow::error(&format!("User {} not known", user_id));
-                }
-            } else {
-                flow::error(&format!("Hostname {} not known", hostname));
-            }
-
-            // at this point it's save to mut db.host...
-            {
-                let host = db.host_get_mut(hostname).unwrap();
-                host.authorized_users
-                    .append(&mut vec![String::from(user_id)]);
-            }
+            subcommand_user::grant(&mut db, &user_id, &hostname);
         } else if let Some(matches) = matches.subcommand_matches("revoke") {
             let hostname = matches.value_of("host").unwrap();
-
-            if let Some(host) = db.host_get(hostname) {
-                if let Some(user) = db.user_get(user_id) {
-                    if !db.is_user_granted(&user, &host) {
-                        flow::error(&format!(
-                            "{} is not granted to access {}",
-                            user.user_id, hostname
-                        ));
-                    }
-                } else {
-                    flow::error(&format!("User {} not known", user_id));
-                }
-            } else {
-                flow::error(&format!("Hostname {} not known", hostname));
-            }
-
-            // at this point it's save to mut db.host...
-            {
-                let host = db.host_get_mut(hostname).unwrap();
-                host.authorized_users.retain(|u| u != user_id);
-            }
+            subcommand_user::revoke(&mut db, &user_id, &hostname);
         }
+    } else if let Some(matches) = matches.subcommand_matches("sync") {
+        subcommand_sync::sync(&mut db);
     }
-
-    /*    let user = database::User {
-        name: "a".to_owned(),
-        public_key: "b".to_owned(),
-    };
-
-    let hostname = "urlsmash.403.io";
-
-    let database = database::Database {
-        hosts: vec![
-            database::Host {
-                hostname: hostname.to_owned(),
-                authorized: vec![],
-            },
-        ],
-        users: vec![user],
-        ..Default::default()
-    };*/
 
     db.save(&database_file);
 }
