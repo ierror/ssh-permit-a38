@@ -100,9 +100,12 @@ pub fn sync(db: &mut Database) {
             for user in &mut db.users {
                 if &user.user_id == authorized_user_id {
                     authorized_keys_vec.append(&mut vec![
-                        format!("# {}\n{}", authorized_user_id, String::from(&*user.public_key))
-                        ]
-                    );
+                        format!(
+                            "# {}\n{}",
+                            authorized_user_id,
+                            String::from(&*user.public_key)
+                        ),
+                    ]);
                 }
             }
         }
