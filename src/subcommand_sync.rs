@@ -12,6 +12,7 @@ use std::str;
 
 pub fn sync(db: &mut Database) {
     for mut host in &mut db.hosts {
+        // tell what's going on
         println!("");
 
         cli_flow::info(&format!("Syncing host {}", host.hostname));
@@ -22,15 +23,18 @@ pub fn sync(db: &mut Database) {
                 .collect::<String>()
         ));
 
+        // sync needed for host?
         if !host.sync_todo {
             cli_flow::warning(&format!("{} is up to date\n\n", host.hostname));
             continue;
         }
 
-        // defaults
+        // ssh connect to host
+        // defaults for connection
         let mut hostname = &*host.hostname;
         let mut port = "22";
 
+        // hostname:port format?
         let host_splitted: Vec<&str> = host.hostname.split(':').collect();
 
         // found one ':' in hostname
@@ -41,6 +45,7 @@ pub fn sync(db: &mut Database) {
             }
         }
 
+        // connect!
         let tcp = match TcpStream::connect(&format!("{}:{}", hostname, port)) {
             Ok(t) => t,
             Err(e) => {
@@ -58,14 +63,18 @@ pub fn sync(db: &mut Database) {
         agent.connect().unwrap();
         agent.list_identities().unwrap();
 
+        // try public key authentication
         sess.userauth_pubkey_file(
             "root",
             Some(Path::new("/Users/boerni/.ssh/id_rsa.pub")),
             Path::new("/Users/boerni/.ssh/id_rsa"),
             Some("TBD"),
         ).unwrap();
+
+        // connection succesfull?
         //println!("{}", sess.authenticated());
 
+        // read current authorized_keys from host
         let mut channel = sess.channel_session().unwrap();
         channel.exec("echo $HOME").unwrap();
         let mut s = String::new();
@@ -94,7 +103,7 @@ pub fn sync(db: &mut Database) {
             }
         };
 
-        // collect authorized_keys for host
+        // collect authorized_keys to sync
         let mut authorized_keys_vec: Vec<String> = Vec::new();
         for authorized_user_id in &mut host.authorized_users {
             for user in &mut db.users {
@@ -113,6 +122,7 @@ pub fn sync(db: &mut Database) {
         authorized_keys_vec.sort();
         authorized_keys_vec.dedup();
 
+        // show diff of authorized_keys of host <-> to sync
         let authorized_keys_str = format!("{}\n", authorized_keys_vec.join("\n\n"));
         let Changeset { diffs, .. } = Changeset::new(s, &authorized_keys_str, "\n");
 
@@ -135,6 +145,8 @@ pub fn sync(db: &mut Database) {
         cli_flow::prompt("\nVerify changes. Do you want to sync (y/n)?");
         let mut deploy_yes_no = String::new();
         loop {
+            deploy_yes_no = String::from("");
+
             io::stdin()
                 .read_line(&mut deploy_yes_no)
                 .ok()
@@ -151,8 +163,10 @@ pub fn sync(db: &mut Database) {
             continue;
         }
 
+        // sync!
+        let remote_path = "/root/.ssh/authorized_keys";
         let mut remote_file = sess.scp_send(
-            Path::new("/root/.ssh/authorized_keys"),
+            Path::new(remote_path),
             0o600,
             authorized_keys_str.len() as u64,
             None,
@@ -160,6 +174,9 @@ pub fn sync(db: &mut Database) {
         remote_file.write(authorized_keys_str.as_bytes()).unwrap();
 
         //host.sync_todo = true;
-        cli_flow::ok(&format!("Successfully synced to {}\n\n", hostname));
+        cli_flow::ok(&format!(
+            "Successfully synced to {}:{}\n\n",
+            hostname, remote_path
+        ));
     }
 }

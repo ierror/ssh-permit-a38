@@ -15,6 +15,8 @@ ifeq (run,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
+export RUST_BACKTRACE = 1
+
 fmt: 
 	cargo fmt
 
@@ -23,3 +25,12 @@ run:
 
 clean:
 	cargo clean
+
+build: clean
+	cargo build
+
+test:
+	 cargo test --jobs=4 -- --test-threads=4
+
+push: fmt
+	git push

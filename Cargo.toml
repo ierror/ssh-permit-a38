@@ -1,8 +1,12 @@
 [package]
-name = "ssh-permit-a38"
+name = "ssh_permit_a38"
 description = "Central managment and deployment for SSH keys"
 version = "0.0.1"
 authors = ["Bernhard Janetzki <boerni@gmail.com>"]
+
+[[bin]]
+name = "ssh-permit-a38"
+path = "src/main.rs"
 
 [dependencies]
 clap = "2.30"
@@ -14,3 +18,6 @@ ssh2 = "0.3"
 colored = "1.6"
 difference = "2.0"
 libgit2-sys = "0.6"
+
+[dev-dependencies]
+assert_cli = "0.5"

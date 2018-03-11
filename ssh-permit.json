@@ -15,6 +15,12 @@
       ],
       "authorized_user_groups": [],
       "sync_todo": true
+    },
+    {
+      "hostname": "2.exmaple.com",
+      "authorized_users": [],
+      "authorized_user_groups": [],
+      "sync_todo": true
     }
   ],
   "users": [
@@ -25,13 +31,9 @@
     {
       "user_id": "boerni@gmail.com",
       "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnytU8vYLYQhmkr+j12fPRkz04bmgSZ7aUcgPmNAtEkUBfpDlyHV/ABDe2jyY5iIJSw9q6r96kByzFn4e+GmCvwrSEqa22502aNlX3anhfN3N9OnLGulCsywOBnpQ6vQl8er5x4HeFjolTXImRe2X6pqZ/027m0BH5IZlPJWENbRRxhG2cXpeDl+xJjPVxwb8MDJmCxrHXl/qJhTjYLoHWpbKnPIVvspOU/4EdL4UL74mC6UJN1teYfwBXeD181CZjXOJlp6/Qo7FeHvVUVganr1WDB2UVxjZ5BzR9hH8lf/TNbQxsrhO+DiiXI8LiZR+LaEoOOJnVoF6CaM8JA5JN boerni@steppenwolf.fritz.box"
-    },
-    {
-      "user_id": "foo@example.com",
-      "public_key": "ssh-"
     }
   ],
   "user_groups": [],
-  "modified_at": "2018-03-11 12:49:53.870151 UTC",
+  "modified_at": "2018-03-11 16:14:43.974727 UTC",
   "schema_version": "0.0.1"
 }
