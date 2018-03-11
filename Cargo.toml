@@ -13,4 +13,4 @@ chrono = "0.4"
 ssh2 = "0.3"
 colored = "1.6"
 difference = "2.0"
-term = "0.4"
+

@@ -10,9 +10,11 @@
     },
     {
       "hostname": "janetzki.eu",
-      "authorized_users": [],
+      "authorized_users": [
+        "bernhard@janetzki.eu"
+      ],
       "authorized_user_groups": [],
-      "sync_todo": false
+      "sync_todo": true
     }
   ],
   "users": [
@@ -30,6 +32,6 @@
     }
   ],
   "user_groups": [],
-  "modified_at": "2018-03-10 19:45:37.389889 UTC",
+  "modified_at": "2018-03-11 12:11:31.028796 UTC",
   "schema_version": "0.0.1"
 }

@@ -10,8 +10,12 @@ pub fn prompt(msg: &str) {
     println!("{}", msg.yellow());
 }
 
+pub fn ok(msg: &str) {
+    println!("{}", msg.green().bold());
+}
+
 pub fn warning(msg: &str) {
-    println!("{}", msg.yellow());
+    println!("{}", msg.magenta());
 }
 
 pub fn info(msg: &str) {

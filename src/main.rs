@@ -8,7 +8,6 @@ extern crate ssh2;
 extern crate serde_derive;
 extern crate clap;
 extern crate difference;
-extern crate term;
 
 use clap::{App, Arg, SubCommand};
 
