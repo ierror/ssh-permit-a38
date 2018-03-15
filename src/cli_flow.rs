@@ -18,12 +18,12 @@ pub fn promptln(msg: &str) {
 }
 
 pub fn prompt_yes_no(msg: &str) -> String {
-    prompt(&format!("{}", msg));
+    let mut yes_no;
 
-    let mut yes_no = String::new();
     loop {
-        yes_no = String::new();
+        yes_no = String::from("");
 
+        prompt(&format!("{}", msg));
         io::stdin()
             .read_line(&mut yes_no)
             .ok()

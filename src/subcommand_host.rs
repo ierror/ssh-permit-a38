@@ -36,7 +36,7 @@ pub fn remove(db: &mut Database, hostname: &str) {
     db.hosts.retain(|h| h.hostname != hostname);
 }
 
-pub fn list(db: &mut Database, hostname: &str) {
+pub fn list(db: &mut Database) {
     for host in &db.hosts {
         println!("\n{}", host.hostname);
         println!(

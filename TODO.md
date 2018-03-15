@@ -14,7 +14,8 @@
 * tests for host:port sync
 * test for user grant / revoke
 * naming user_group vs. group
-+ EXAMPLES to DOC:
+* host.sync_todo = true wieder rein
+* EXAMPLES to DOC:
 
     cargo run -- host urlsmash.403.io add
     cargo run -- host example.com:22 add

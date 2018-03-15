@@ -3,7 +3,6 @@ use colored::Colorize;
 use database::Database;
 use difference::{Changeset, Difference};
 use ssh2::Session;
-use std::io;
 use std::io::Read;
 use std::io::prelude::*;
 use std::net::TcpStream;
@@ -11,23 +10,16 @@ use std::path::Path;
 use std::str;
 
 pub fn sync(db: &mut Database) {
-    for mut host in &mut db.hosts {
-        // tell what's going on
-        println!("");
+    let mut syned_sth = false;
 
-        cli_flow::infoln(&format!("Syncing host {}", host.hostname));
-        cli_flow::infoln(&format!(
-            "{}",
-            (0..host.hostname.len() + 13)
-                .map(|_| "=")
-                .collect::<String>()
-        ));
-
+    for host in &mut db.hosts {
         // sync needed for host?
         if !host.sync_todo {
-            cli_flow::warningln(&format!("{} is up to date\n\n", host.hostname));
             continue;
         }
+
+        cli_flow::infoln(&format!("Syncing host {}...", host.hostname));
+        syned_sth = true;
 
         // ssh connect to host
         // defaults for connection
@@ -76,7 +68,6 @@ pub fn sync(db: &mut Database) {
 
         // read current authorized_keys from host
         let mut channel = sess.channel_session().unwrap();
-        let mut channel = sess.channel_session().unwrap();
         channel.exec("echo $HOME").unwrap();
         let mut s = String::new();
         channel.read_to_string(&mut s).unwrap();
@@ -84,7 +75,7 @@ pub fn sync(db: &mut Database) {
             "{}/.ssh/authorized_keys",
             s.trim_right().trim_left().to_owned()
         );
-        channel.wait_close();
+        channel.wait_close().is_ok();
         //println!(
         //    "{} {}",
         //    channel.exit_status().unwrap(),
@@ -104,10 +95,12 @@ pub fn sync(db: &mut Database) {
             }
         };
 
-        // collect authorized_keys to sync
+        // collect authorized_keys to sync ...
         let mut authorized_keys_vec: Vec<String> = Vec::new();
-        for authorized_user_id in &mut host.authorized_users {
-            for user in &mut db.users {
+
+        // ... 1. on user level
+        for authorized_user_id in &host.authorized_users {
+            for user in &db.users {
                 if &user.user_id == authorized_user_id {
                     // build e.g.
                     // # mail@example.com
@@ -119,6 +112,25 @@ pub fn sync(db: &mut Database) {
                             String::from(&*user.public_key)
                         ),
                     ]);
+                }
+            }
+        }
+
+        // ... 2. on group level
+        for authorized_group_id in &host.authorized_user_groups {
+            for group in &db.user_groups {
+                if authorized_group_id == &group.group_id {
+                    for user_id in &group.members {
+                        for user in &db.users {
+                            if user_id == &user.user_id {
+                                authorized_keys_vec.append(&mut vec![
+                                    format!("# {}\n{}", user_id, String::from(&*user.public_key)),
+                                ]);
+                                break;
+                            }
+                        }
+                    }
+                    break;
                 }
             }
         }
@@ -146,7 +158,7 @@ pub fn sync(db: &mut Database) {
         }
 
         // sync confirmation
-        if cli_flow::prompt_yes_no("Verify changes. Do you want to sync (y/n)?") == "n" {
+        if cli_flow::prompt_yes_no("Verify changes. Do you want to sync? (y/n):") == "n" {
             cli_flow::warningln(&format!("Skipping sync of {} as you told so\n\n", hostname));
             continue;
         }
@@ -161,10 +173,15 @@ pub fn sync(db: &mut Database) {
         ).unwrap();
         remote_file.write(authorized_keys_str.as_bytes()).unwrap();
 
-        //host.sync_todo = true;
         cli_flow::okln(&format!(
             "Successfully synced to {}:{}\n\n",
             hostname, remote_path
         ));
+
+        host.sync_todo = false;
+    }
+
+    if !syned_sth {
+        cli_flow::warningln("All hosts up to date. Nothing to sync, bye bye");
     }
 }

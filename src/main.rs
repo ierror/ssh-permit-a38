@@ -155,8 +155,6 @@ fn main() {
         .get_matches();
 
     let database_file = matches.value_of("database").unwrap_or("ssh-permit.json");
-    println!("Value for config: {}", database_file);
-
     let mut db = database::Database {
         ..Default::default()
     }.load(database_file)
@@ -171,7 +169,7 @@ fn main() {
         } else if matches.subcommand_matches("remove").is_some() {
             subcommand_host::remove(&mut db, &hostname);
         } else if matches.subcommand_matches("list").is_some() {
-            subcommand_host::list(&mut db, &hostname);
+            subcommand_host::list(&mut db);
         }
     }
     // user
@@ -219,7 +217,7 @@ fn main() {
         }
     }
     // sync
-    else if let Some(matches) = matches.subcommand_matches("sync") {
+    else if matches.subcommand_matches("sync").is_some() {
         subcommand_sync::sync(&mut db);
     }
 

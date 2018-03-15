@@ -65,13 +65,6 @@ impl Database {
             .map(|i| &self.users[i])
     }
 
-    pub fn user_get_mut(&mut self, user_id: &str) -> Option<&mut User> {
-        self.users
-            .iter()
-            .position(|u| u.user_id == user_id)
-            .map(move |i| &mut self.users[i])
-    }
-
     pub fn group_get(&self, group_id: &str) -> Option<&UserGroup> {
         self.user_groups
             .iter()

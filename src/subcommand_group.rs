@@ -1,6 +1,5 @@
 use cli_flow;
 use database::{Database, UserGroup};
-use std::io;
 
 pub fn add(db: &mut Database, group_id: &str) {
     // check group is not present
@@ -105,7 +104,7 @@ pub fn user_add(db: &mut Database, group_id: &str, user_id: &str) {
 
     // at this point it's save to mut db.host...
     {
-        let mut group = db.group_get_mut(group_id).unwrap();
+        let group = db.group_get_mut(group_id).unwrap();
         group.members.append(&mut vec![String::from(user_id)]);
     }
     {
@@ -139,7 +138,7 @@ pub fn user_remove(db: &mut Database, group_id: &str, user_id: &str) {
 
     // at this point it's save to mut db.host...
     {
-        let mut group = db.group_get_mut(group_id).unwrap();
+        let group = db.group_get_mut(group_id).unwrap();
         group.members.retain(|u| u != user_id);
     }
     {

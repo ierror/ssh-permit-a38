@@ -6,16 +6,18 @@
         "bernhard@janetzki.eu"
       ],
       "authorized_user_groups": [
-        "dev-ops"
+        "boerni@gmail.com"
       ],
-      "sync_todo": true
+      "sync_todo": false
     },
     {
       "hostname": "janetzki.eu",
       "authorized_users": [
         "bernhard@janetzki.eu"
       ],
-      "authorized_user_groups": [],
+      "authorized_user_groups": [
+        "dev-ops"
+      ],
       "sync_todo": false
     }
   ],
@@ -32,13 +34,17 @@
   "user_groups": [
     {
       "group_id": "dev-ops",
-      "members": []
+      "members": [
+        "bernhard@janetzki.eu"
+      ]
     },
     {
       "group_id": "devs",
-      "members": []
+      "members": [
+        "boerni@gmail.com"
+      ]
     }
   ],
-  "modified_at": "2018-03-15 18:20:11.341999 UTC",
+  "modified_at": "2018-03-15 20:50:00.768105 UTC",
   "schema_version": "0.0.1"
 }
