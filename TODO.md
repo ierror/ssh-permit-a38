@@ -2,10 +2,8 @@
 * remove group from authorized groups if group is deleted
 * unwrap rm
 * user list -> with permissions 
-* Catch JSON parsing errors
 * Default "".to_owned() to None?
 * to_owned vs. to_string
-* Success messages for add / delete
 * .expect("Couldn't read public key.")
 * user_id => id?
 * DOC: "unknown => ... to get a list of hostnames available"

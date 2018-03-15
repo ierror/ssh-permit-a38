@@ -154,11 +154,24 @@ fn main() {
         )
         .get_matches();
 
+    // load database
     let database_file = matches.value_of("database").unwrap_or("ssh-permit.json");
+
     let mut db = database::Database {
         ..Default::default()
-    }.load(database_file)
-        .unwrap();
+    };
+
+    db = match db.load(database_file) {
+        Ok(t) => t,
+        Err(e) => {
+            cli_flow::errorln(&format!(
+                "Unable to load {}: {}",
+                database_file,
+                e.to_string()
+            ));
+            return;
+        }
+    };
 
     // host
     if let Some(matches) = matches.subcommand_matches("host") {
@@ -221,5 +234,6 @@ fn main() {
         subcommand_sync::sync(&mut db);
     }
 
+    // save database
     db.save(&database_file);
 }
