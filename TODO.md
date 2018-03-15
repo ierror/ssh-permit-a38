@@ -9,13 +9,12 @@
 * user_id => id?
 * DOC: "unknown => ... to get a list of hostnames available"
 * DOC: SSH v2 only
-* Create authorized on first sync
-
-export OPENSSL_ROOT_DIR=/usr/local/opt/openssl
-export OPENSSL_LIB_DIR=/usr/local/opt/openssl/lib
-export OPENSSL_INCLUDE_DIR=/usr/local/opt/openssl/include
-
-EXAMPLES:
+* Create authorized file on first sync
+* check for sync_todo = True
+* tests for host:port sync
+* test for user grant / revoke
+* naming user_group vs. group
++ EXAMPLES to DOC:
 
     cargo run -- host urlsmash.403.io add
     cargo run -- host example.com:22 add

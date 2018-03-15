@@ -65,10 +65,46 @@ impl Database {
             .map(|i| &self.users[i])
     }
 
+    pub fn user_get_mut(&mut self, user_id: &str) -> Option<&mut User> {
+        self.users
+            .iter()
+            .position(|u| u.user_id == user_id)
+            .map(move |i| &mut self.users[i])
+    }
+
+    pub fn group_get(&self, group_id: &str) -> Option<&UserGroup> {
+        self.user_groups
+            .iter()
+            .position(|g| g.group_id == group_id)
+            .map(|i| &self.user_groups[i])
+    }
+
+    pub fn group_get_mut(&mut self, group_id: &str) -> Option<&mut UserGroup> {
+        self.user_groups
+            .iter()
+            .position(|g| g.group_id == group_id)
+            .map(move |i| &mut self.user_groups[i])
+    }
+
     pub fn is_user_granted(&self, user: &User, host: &Host) -> bool {
         host.authorized_users
             .iter()
             .position(|au| au == &user.user_id)
+            .is_some()
+    }
+
+    pub fn is_group_granted(&self, user_group: &UserGroup, host: &Host) -> bool {
+        host.authorized_user_groups
+            .iter()
+            .position(|ag| ag == &user_group.group_id)
+            .is_some()
+    }
+
+    pub fn is_user_group_member(&self, user: &User, user_group: &UserGroup) -> bool {
+        user_group
+            .members
+            .iter()
+            .position(|u| u == &user.user_id)
             .is_some()
     }
 }
@@ -113,7 +149,7 @@ impl fmt::Display for User {
 #[derive(Serialize, Deserialize)]
 pub struct UserGroup {
     pub group_id: String,
-    pub members: Vec<User>,
+    pub members: Vec<String>,
 }
 
 impl fmt::Display for UserGroup {

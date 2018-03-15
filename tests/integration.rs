@@ -37,8 +37,10 @@ fn teardown(test_id: u32) {
 }
 
 fn assert_cli_bin(test_id: u32) -> assert_cli::Assert {
-    assert_cli::Assert::main_binary()
-        .with_args(&["--database", &settings_fixtures_copy(test_id).to_str().unwrap()])
+    assert_cli::Assert::main_binary().with_args(&[
+        "--database",
+        &settings_fixtures_copy(test_id).to_str().unwrap(),
+    ])
 }
 
 fn run_test<T>(test_id: u32, test: T) -> ()
@@ -106,6 +108,34 @@ fn host_add_remove() {
             .doesnt_contain("1.example.com")
             .stdout()
             .doesnt_contain("2.example.com")
+            .unwrap();
+    })
+}
+
+#[test]
+fn host_add_duplicate_deny() {
+    let test_id = line!();
+
+    run_test(test_id, || {
+        // user foo1@example.com add
+        assert_cli_bin(test_id)
+            .with_args(&["host", "example.com", "add"])
+            .succeeds()
+            .stdin("ssh-")
+            .unwrap();
+
+        // user foo1@exmap2e.com add
+        assert_cli_bin(test_id)
+            .with_args(&["host", "example.com", "add"])
+            .fails()
+            .unwrap();
+
+        // user list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list"])
+            .succeeds()
+            .stdout()
+            .contains("example.com")
             .unwrap();
     })
 }
@@ -198,29 +228,88 @@ fn user_add_duplicate_deny() {
 }
 
 #[test]
-fn host_add_duplicate_deny() {
+fn group_add_remove() {
+    let test_id = line!();
+
+    run_test(test_id, || {
+        // group foo1@example.com add
+        assert_cli_bin(test_id)
+            .with_args(&["group", "dev-ops", "add"])
+            .succeeds()
+            .stdin("ssh-")
+            .unwrap();
+
+        // group foo1@exmap2e.com add
+        assert_cli_bin(test_id)
+            .with_args(&["group", "support", "add"])
+            .succeeds()
+            .stdin("ssh-")
+            .unwrap();
+
+        // group list
+        assert_cli_bin(test_id)
+            .with_args(&["group", "list"])
+            .succeeds()
+            .stdout()
+            .contains("dev-ops")
+            .unwrap();
+
+        // group list
+        assert_cli_bin(test_id)
+            .with_args(&["group", "list"])
+            .succeeds()
+            .stdout()
+            .contains("support")
+            .unwrap();
+
+        // group foo1@example.com remove
+        assert_cli_bin(test_id)
+            .with_args(&["group", "dev-ops", "remove"])
+            .succeeds()
+            .unwrap();
+
+        // group foo2@example.com remove
+        assert_cli_bin(test_id)
+            .with_args(&["group", "support", "remove"])
+            .succeeds()
+            .unwrap();
+
+        // group list
+        assert_cli_bin(test_id)
+            .with_args(&["group", "list"])
+            .succeeds()
+            .stdout()
+            .doesnt_contain("dev-ops")
+            .stdout()
+            .doesnt_contain("support")
+            .unwrap();
+    })
+}
+
+#[test]
+fn group_add_duplicate_deny() {
     let test_id = line!();
 
     run_test(test_id, || {
         // user foo1@example.com add
         assert_cli_bin(test_id)
-            .with_args(&["host", "example.com", "add"])
+            .with_args(&["group", "dev-ops", "add"])
             .succeeds()
             .stdin("ssh-")
             .unwrap();
 
         // user foo1@exmap2e.com add
         assert_cli_bin(test_id)
-            .with_args(&["host", "example.com", "add"])
+            .with_args(&["group", "dev-ops", "add"])
             .fails()
             .unwrap();
 
         // user list
         assert_cli_bin(test_id)
-            .with_args(&["host", "list"])
+            .with_args(&["group", "list"])
             .succeeds()
             .stdout()
-            .contains("example.com")
+            .contains("dev-ops")
             .unwrap();
     })
 }

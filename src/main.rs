@@ -13,6 +13,7 @@ use clap::{App, Arg, SubCommand};
 
 mod cli_flow;
 mod database;
+mod subcommand_group;
 mod subcommand_host;
 mod subcommand_sync;
 mod subcommand_user;
@@ -32,6 +33,7 @@ fn main() {
                 .help("Database file to use")
                 .takes_value(true),
         )
+
         // host
         .subcommand(
             SubCommand::with_name("host")
@@ -53,6 +55,7 @@ fn main() {
                     SubCommand::with_name("list")
                 )
         )
+
         // user
         .subcommand(
             SubCommand::with_name("user")
@@ -90,6 +93,59 @@ fn main() {
                             .required(true))
                 )
         )
+
+        // group
+        .subcommand(
+            SubCommand::with_name("group")
+                // group <host>
+                .about("Group related actions")
+                        .arg(Arg::with_name("group")
+                            .help("Group")
+                            .index(1))
+                // group <group> add
+                .subcommand(
+                    SubCommand::with_name("add")
+                )
+                // group <group> remove
+                .subcommand(
+                    SubCommand::with_name("remove")
+                )
+                // group list
+                .subcommand(
+                    SubCommand::with_name("list")
+                )
+                // group <group> grant <host>
+                .subcommand(
+                    SubCommand::with_name("grant")
+                        .arg(Arg::with_name("host")
+                            .help("Host")
+                            .index(1)
+                            .required(true))
+                )
+                // group <group> revoke <host>
+                .subcommand(
+                    SubCommand::with_name("revoke")
+                        .arg(Arg::with_name("host")
+                            .help("Host")
+                            .index(1)
+                            .required(true))
+                )
+                // group <group> user <user>
+                .subcommand(
+                    SubCommand::with_name("user")
+                        .arg(Arg::with_name("user")
+                            .help("User")
+                            .index(1)
+                            .required(true))
+                        .subcommand(
+                            SubCommand::with_name("add")
+                        )
+                        .subcommand(
+                            SubCommand::with_name("remove")
+                        )
+                )
+        )
+
         // sync
         .subcommand(
             SubCommand::with_name("sync")
@@ -118,9 +174,8 @@ fn main() {
             subcommand_host::list(&mut db, &hostname);
         }
     }
-
     // user
-    if let Some(matches) = matches.subcommand_matches("user") {
+    else if let Some(matches) = matches.subcommand_matches("user") {
         let user_id = matches.value_of("user").unwrap_or("");
 
         if matches.subcommand_matches("add").is_some() {
@@ -136,7 +191,35 @@ fn main() {
             let hostname = matches.value_of("host").unwrap();
             subcommand_user::revoke(&mut db, &user_id, &hostname);
         }
-    } else if let Some(matches) = matches.subcommand_matches("sync") {
+    }
+    // group
+    else if let Some(matches) = matches.subcommand_matches("group") {
+        let group_id = matches.value_of("group").unwrap_or("");
+
+        if matches.subcommand_matches("add").is_some() {
+            subcommand_group::add(&mut db, &group_id);
+        } else if matches.subcommand_matches("remove").is_some() {
+            subcommand_group::remove(&mut db, &group_id);
+        } else if let Some(_matches) = matches.subcommand_matches("list") {
+            subcommand_group::list(&mut db);
+        } else if let Some(matches) = matches.subcommand_matches("grant") {
+            let hostname = matches.value_of("host").unwrap();
+            subcommand_group::grant(&mut db, &group_id, &hostname);
+        } else if let Some(matches) = matches.subcommand_matches("revoke") {
+            let hostname = matches.value_of("host").unwrap();
+            subcommand_group::revoke(&mut db, &group_id, &hostname);
+        } else if let Some(matches) = matches.subcommand_matches("user") {
+            let user_id = matches.value_of("user").unwrap_or("");
+
+            if matches.subcommand_matches("add").is_some() {
+                subcommand_group::user_add(&mut db, &group_id, &user_id);
+            } else if matches.subcommand_matches("remove").is_some() {
+                subcommand_group::user_remove(&mut db, &group_id, &user_id);
+            }
+        }
+    }
+    // sync
+    else if let Some(matches) = matches.subcommand_matches("sync") {
         subcommand_sync::sync(&mut db);
     }
 

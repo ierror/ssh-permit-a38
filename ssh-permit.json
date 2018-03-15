@@ -5,7 +5,9 @@
       "authorized_users": [
         "bernhard@janetzki.eu"
       ],
-      "authorized_user_groups": [],
+      "authorized_user_groups": [
+        "dev-ops"
+      ],
       "sync_todo": true
     },
     {
@@ -14,13 +16,7 @@
         "bernhard@janetzki.eu"
       ],
       "authorized_user_groups": [],
-      "sync_todo": true
-    },
-    {
-      "hostname": "2.exmaple.com",
-      "authorized_users": [],
-      "authorized_user_groups": [],
-      "sync_todo": true
+      "sync_todo": false
     }
   ],
   "users": [
@@ -33,7 +29,16 @@
       "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnytU8vYLYQhmkr+j12fPRkz04bmgSZ7aUcgPmNAtEkUBfpDlyHV/ABDe2jyY5iIJSw9q6r96kByzFn4e+GmCvwrSEqa22502aNlX3anhfN3N9OnLGulCsywOBnpQ6vQl8er5x4HeFjolTXImRe2X6pqZ/027m0BH5IZlPJWENbRRxhG2cXpeDl+xJjPVxwb8MDJmCxrHXl/qJhTjYLoHWpbKnPIVvspOU/4EdL4UL74mC6UJN1teYfwBXeD181CZjXOJlp6/Qo7FeHvVUVganr1WDB2UVxjZ5BzR9hH8lf/TNbQxsrhO+DiiXI8LiZR+LaEoOOJnVoF6CaM8JA5JN boerni@steppenwolf.fritz.box"
     }
   ],
-  "user_groups": [],
-  "modified_at": "2018-03-11 16:14:43.974727 UTC",
+  "user_groups": [
+    {
+      "group_id": "dev-ops",
+      "members": []
+    },
+    {
+      "group_id": "devs",
+      "members": []
+    }
+  ],
+  "modified_at": "2018-03-15 18:20:11.341999 UTC",
   "schema_version": "0.0.1"
 }

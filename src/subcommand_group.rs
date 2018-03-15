@@ -1,0 +1,155 @@
+use cli_flow;
+use database::{Database, UserGroup};
+use std::io;
+
+pub fn add(db: &mut Database, group_id: &str) {
+    // check group is not present
+    if db.group_get(group_id).is_some() {
+        cli_flow::errorln(&format!("Group {} already exists", group_id));
+    }
+
+    // add new group
+    let mut group_new = vec![
+        UserGroup {
+            group_id: group_id.to_owned(),
+            members: vec![],
+        },
+    ];
+
+    db.user_groups.append(&mut group_new);
+}
+
+pub fn remove(db: &mut Database, group_id: &str) {
+    // check group exist
+    if db.group_get(group_id).is_none() {
+        cli_flow::errorln(&format!("Group {} not known", group_id));
+    }
+
+    db.user_groups.retain(|u| u.group_id != group_id);
+}
+
+pub fn list(db: &mut Database) {
+    for group in &db.user_groups {
+        println!("\n{}", group.group_id);
+        println!(
+            "{}",
+            (0..group.group_id.len()).map(|_| "=").collect::<String>()
+        );
+    }
+}
+
+pub fn grant(db: &mut Database, group_id: &str, hostname: &str) {
+    if let Some(host) = db.host_get(hostname) {
+        if let Some(group) = db.group_get(group_id) {
+            if db.is_group_granted(&group, &host) {
+                cli_flow::errorln(&format!(
+                    "{} already granted to access {}",
+                    group.group_id, hostname
+                ));
+            }
+        } else {
+            cli_flow::errorln(&format!("Group {} not known", group_id));
+        }
+    } else {
+        cli_flow::errorln(&format!("Hostname {} not known", hostname));
+    }
+
+    // at this point it's save to mut db.host...
+    {
+        let host = db.host_get_mut(hostname).unwrap();
+        host.authorized_user_groups
+            .append(&mut vec![String::from(group_id)]);
+        host.sync_todo = true;
+    }
+}
+
+pub fn revoke(db: &mut Database, group_id: &str, hostname: &str) {
+    if let Some(host) = db.host_get(hostname) {
+        if let Some(group) = db.group_get(group_id) {
+            if !db.is_group_granted(&group, &host) {
+                cli_flow::errorln(&format!(
+                    "{} is not granted to access {}",
+                    group.group_id, hostname
+                ));
+            }
+        } else {
+            cli_flow::errorln(&format!("Group {} not known", group_id));
+        }
+    } else {
+        cli_flow::errorln(&format!("Hostname {} not known", hostname));
+    }
+
+    // at this point it's save to mut db.host...
+    {
+        let host = db.host_get_mut(hostname).unwrap();
+        host.authorized_user_groups.retain(|u| u != group_id);
+    }
+}
+
+pub fn user_add(db: &mut Database, group_id: &str, user_id: &str) {
+    // check user and group exist
+    if let Some(user) = db.user_get(user_id) {
+        if let Some(group) = db.group_get(group_id) {
+            if db.is_user_group_member(&user, &group) {
+                cli_flow::errorln(&format!(
+                    "User {} is already member of group {}",
+                    user_id, group_id
+                ));
+            }
+        } else {
+            cli_flow::errorln(&format!("Group {} not known", group_id));
+        }
+    } else {
+        cli_flow::errorln(&format!("User {} not known", user_id));
+    }
+
+    // at this point it's save to mut db.host...
+    {
+        let mut group = db.group_get_mut(group_id).unwrap();
+        group.members.append(&mut vec![String::from(user_id)]);
+    }
+    {
+        // set sync todo for affected hosts
+        for host in &mut db.hosts {
+            for authorized_group in &mut host.authorized_user_groups {
+                if authorized_group == group_id {
+                    host.sync_todo = true;
+                }
+            }
+        }
+    }
+}
+
+pub fn user_remove(db: &mut Database, group_id: &str, user_id: &str) {
+    // check user and group exist
+    if let Some(user) = db.user_get(user_id) {
+        if let Some(group) = db.group_get(group_id) {
+            if !db.is_user_group_member(&user, &group) {
+                cli_flow::errorln(&format!(
+                    "User {} is not a member of group {}",
+                    user_id, group_id
+                ));
+            }
+        } else {
+            cli_flow::errorln(&format!("Group {} not known", group_id));
+        }
+    } else {
+        cli_flow::errorln(&format!("User {} not known", user_id));
+    }
+
+    // at this point it's save to mut db.host...
+    {
+        let mut group = db.group_get_mut(group_id).unwrap();
+        group.members.retain(|u| u != user_id);
+    }
+    {
+        // set sync todo for affected hosts
+        for host in &mut db.hosts {
+            for authorized_group in &mut host.authorized_user_groups {
+                if authorized_group == group_id {
+                    host.sync_todo = true;
+                }
+            }
+        }
+    }
+}

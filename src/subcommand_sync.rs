@@ -15,8 +15,8 @@ pub fn sync(db: &mut Database) {
         // tell what's going on
         println!("");
 
-        cli_flow::info(&format!("Syncing host {}", host.hostname));
-        cli_flow::info(&format!(
+        cli_flow::infoln(&format!("Syncing host {}", host.hostname));
+        cli_flow::infoln(&format!(
             "{}",
             (0..host.hostname.len() + 13)
                 .map(|_| "=")
@@ -25,7 +25,7 @@ pub fn sync(db: &mut Database) {
 
         // sync needed for host?
         if !host.sync_todo {
-            cli_flow::warning(&format!("{} is up to date\n\n", host.hostname));
+            cli_flow::warningln(&format!("{} is up to date\n\n", host.hostname));
             continue;
         }
 
@@ -49,7 +49,7 @@ pub fn sync(db: &mut Database) {
         let tcp = match TcpStream::connect(&format!("{}:{}", hostname, port)) {
             Ok(t) => t,
             Err(e) => {
-                cli_flow::warning(&format!("{}: {}", host.hostname, e.to_string()));
+                cli_flow::warningln(&format!("{}: {}", host.hostname, e.to_string()));
                 continue;
             }
         };
@@ -76,6 +76,7 @@ pub fn sync(db: &mut Database) {
 
         // read current authorized_keys from host
         let mut channel = sess.channel_session().unwrap();
+        let mut channel = sess.channel_session().unwrap();
         channel.exec("echo $HOME").unwrap();
         let mut s = String::new();
         channel.read_to_string(&mut s).unwrap();
@@ -98,7 +99,7 @@ pub fn sync(db: &mut Database) {
         let s = match str::from_utf8(&contents) {
             Ok(v) => v,
             Err(e) => {
-                cli_flow::warning(&format!("{}: Invalid UTF-8 sequence: {}", host.hostname, e));
+                cli_flow::warningln(&format!("{}: Invalid UTF-8 sequence: {}", host.hostname, e));
                 continue;
             }
         };
@@ -108,6 +109,9 @@ pub fn sync(db: &mut Database) {
         for authorized_user_id in &mut host.authorized_users {
             for user in &mut db.users {
                 if &user.user_id == authorized_user_id {
+                    // build e.g.
+                    // # mail@example.com
+                    // ssh-rsa ...
                     authorized_keys_vec.append(&mut vec![
                         format!(
                             "# {}\n{}",
@@ -142,24 +146,8 @@ pub fn sync(db: &mut Database) {
         }
 
         // sync confirmation
-        cli_flow::prompt("\nVerify changes. Do you want to sync (y/n)?");
-        let mut deploy_yes_no = String::new();
-        loop {
-            deploy_yes_no = String::from("");
-
-            io::stdin()
-                .read_line(&mut deploy_yes_no)
-                .ok()
-                .expect("Couldn't read (y/n) sync confirmation");
-
-            deploy_yes_no = deploy_yes_no.trim_right().trim_left().to_owned();
-            if deploy_yes_no == "n" || deploy_yes_no == "y" {
-                break;
-            }
-        }
-
-        if deploy_yes_no == "n" {
-            cli_flow::warning(&format!("Skipping sync of {} as you told so\n\n", hostname));
+        if cli_flow::prompt_yes_no("Verify changes. Do you want to sync (y/n)?") == "n" {
+            cli_flow::warningln(&format!("Skipping sync of {} as you told so\n\n", hostname));
             continue;
         }
 
@@ -174,7 +162,7 @@ pub fn sync(db: &mut Database) {
         remote_file.write(authorized_keys_str.as_bytes()).unwrap();
 
         //host.sync_todo = true;
-        cli_flow::ok(&format!(
+        cli_flow::okln(&format!(
             "Successfully synced to {}:{}\n\n",
             hostname, remote_path
         ));

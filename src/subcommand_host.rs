@@ -3,19 +3,19 @@ use database::{Database, Host};
 
 pub fn add(db: &mut Database, hostname: &str) {
     if db.host_get(hostname).is_some() {
-        cli_flow::error(&format!("Hostname {} already exists", hostname));
+        cli_flow::errorln(&format!("Hostname {} already exists", hostname));
     }
 
     // <= 1 char ':' allowed
     if hostname.matches(":").count() > 1 {
-        cli_flow::error("Hostname format invalid. More than than one ':' found");
+        cli_flow::errorln("Hostname format invalid. More than than one ':' found");
     }
 
     // check that port part is integer
     let host_splitted: Vec<&str> = hostname.split(':').collect();
     if host_splitted.len() == 2 {
         if !host_splitted[1].parse::<i32>().is_ok() {
-            cli_flow::error("Hostname format invalid. Port is not a integer");
+            cli_flow::errorln("Hostname format invalid. Port is not a integer");
         }
     }
 
@@ -31,7 +31,7 @@ pub fn add(db: &mut Database, hostname: &str) {
 
 pub fn remove(db: &mut Database, hostname: &str) {
     if !db.host_get(hostname).is_some() {
-        cli_flow::error(&format!("Hostname {} not known", hostname));
+        cli_flow::errorln(&format!("Hostname {} not known", hostname));
     }
     db.hosts.retain(|h| h.hostname != hostname);
 }

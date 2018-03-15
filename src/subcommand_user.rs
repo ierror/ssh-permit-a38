@@ -5,11 +5,11 @@ use std::io;
 pub fn add(db: &mut Database, user_id: &str) {
     // check user is not present
     if db.user_get(user_id).is_some() {
-        cli_flow::error(&format!("User {} already exists", user_id));
+        cli_flow::errorln(&format!("User {} already exists", user_id));
     }
 
     // read public key
-    cli_flow::prompt(&format!(
+    cli_flow::promptln(&format!(
         "Paste the public key of {} and press the Enter key:",
         user_id
     ));
@@ -22,7 +22,7 @@ pub fn add(db: &mut Database, user_id: &str) {
 
     // TODO:; daring assumption, validate...
     if !public_key.starts_with("ssh-") {
-        cli_flow::error("Invalid public ssh key format")
+        cli_flow::errorln("Invalid public ssh key format")
     }
 
     // add new user
@@ -39,7 +39,7 @@ pub fn add(db: &mut Database, user_id: &str) {
 pub fn remove(db: &mut Database, user_id: &str) {
     // check user exist
     if db.user_get(user_id).is_none() {
-        cli_flow::error(&format!("User {} not known", user_id));
+        cli_flow::errorln(&format!("User {} not known", user_id));
     }
 
     db.users.retain(|u| u.user_id != user_id);
@@ -59,16 +59,16 @@ pub fn grant(db: &mut Database, user_id: &str, hostname: &str) {
     if let Some(host) = db.host_get(hostname) {
         if let Some(user) = db.user_get(user_id) {
             if db.is_user_granted(&user, &host) {
-                cli_flow::error(&format!(
+                cli_flow::errorln(&format!(
                     "{} already granted to access {}",
                     user.user_id, hostname
                 ));
             }
         } else {
-            cli_flow::error(&format!("User {} not known", user_id));
+            cli_flow::errorln(&format!("User {} not known", user_id));
         }
     } else {
-        cli_flow::error(&format!("Hostname {} not known", hostname));
+        cli_flow::errorln(&format!("Hostname {} not known", hostname));
     }
 
     // at this point it's save to mut db.host...
@@ -84,16 +84,16 @@ pub fn revoke(db: &mut Database, user_id: &str, hostname: &str) {
     if let Some(host) = db.host_get(hostname) {
         if let Some(user) = db.user_get(user_id) {
             if !db.is_user_granted(&user, &host) {
-                cli_flow::error(&format!(
+                cli_flow::errorln(&format!(
                     "{} is not granted to access {}",
                     user.user_id, hostname
                 ));
             }
         } else {
-            cli_flow::error(&format!("User {} not known", user_id));
+            cli_flow::errorln(&format!("User {} not known", user_id));
         }
     } else {
-        cli_flow::error(&format!("Hostname {} not known", hostname));
+        cli_flow::errorln(&format!("Hostname {} not known", hostname));
     }
 
     // at this point it's save to mut db.host...

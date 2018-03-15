@@ -1,2 +1,3 @@
-target
-tests/tmp
+target/
+tests/tmp/
+.vagrant/

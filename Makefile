@@ -34,3 +34,4 @@ test:
 
 push: fmt
 	git push
+
