@@ -34,6 +34,7 @@ pub fn add(db: &mut Database, user_id: &str) {
     ];
 
     db.users.append(&mut user_new);
+    cli_flow::okln(&format!("Successfully added user {}", user_id));
 }
 
 pub fn remove(db: &mut Database, user_id: &str) {
@@ -43,6 +44,7 @@ pub fn remove(db: &mut Database, user_id: &str) {
     }
 
     db.users.retain(|u| u.user_id != user_id);
+    cli_flow::okln(&format!("Successfully removed user {}", user_id));
 }
 
 pub fn list(db: &mut Database) {
@@ -53,6 +55,8 @@ pub fn list(db: &mut Database) {
             (0..user.user_id.len()).map(|_| "=").collect::<String>()
         );
     }
+
+    println!("");
 }
 
 pub fn grant(db: &mut Database, user_id: &str, hostname: &str) {
@@ -78,6 +82,11 @@ pub fn grant(db: &mut Database, user_id: &str, hostname: &str) {
             .append(&mut vec![String::from(user_id)]);
         host.sync_todo = true;
     }
+
+    cli_flow::okln(&format!(
+        "Successfully granted user {} to host {}",
+        user_id, hostname
+    ));
 }
 
 pub fn revoke(db: &mut Database, user_id: &str, hostname: &str) {
@@ -101,4 +110,9 @@ pub fn revoke(db: &mut Database, user_id: &str, hostname: &str) {
         let host = db.host_get_mut(hostname).unwrap();
         host.authorized_users.retain(|u| u != user_id);
     }
+
+    cli_flow::okln(&format!(
+        "Successfully revoked user {} from host {}",
+        user_id, hostname
+    ));
 }

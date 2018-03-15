@@ -26,14 +26,18 @@ pub fn add(db: &mut Database, hostname: &str) {
             ..Default::default()
         },
     ];
+
     db.hosts.append(&mut host_new);
+    cli_flow::okln(&format!("Successfully added host {}", hostname));
 }
 
 pub fn remove(db: &mut Database, hostname: &str) {
     if !db.host_get(hostname).is_some() {
         cli_flow::errorln(&format!("Hostname {} not known", hostname));
     }
+
     db.hosts.retain(|h| h.hostname != hostname);
+    cli_flow::okln(&format!("Successfully removed host {}", hostname));
 }
 
 pub fn list(db: &mut Database) {
@@ -51,7 +55,9 @@ pub fn list(db: &mut Database) {
 
         println!("\n## Authorized Groups");
         for group in &host.authorized_user_groups {
-            println!("\n* {}", group);
+            println!("* {}", group);
         }
+
+        println!("");
     }
 }

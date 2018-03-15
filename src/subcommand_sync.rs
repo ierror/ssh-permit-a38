@@ -181,7 +181,9 @@ pub fn sync(db: &mut Database) {
         host.sync_todo = false;
     }
 
-    if !syned_sth {
+    if syned_sth {
+        cli_flow::okln("Successfully synced all hosts");
+    } else {
         cli_flow::warningln("All hosts up to date. Nothing to sync, bye bye");
     }
 }

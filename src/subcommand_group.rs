@@ -16,6 +16,7 @@ pub fn add(db: &mut Database, group_id: &str) {
     ];
 
     db.user_groups.append(&mut group_new);
+    cli_flow::okln(&format!("Successfully added group {}", group_id));
 }
 
 pub fn remove(db: &mut Database, group_id: &str) {
@@ -25,6 +26,7 @@ pub fn remove(db: &mut Database, group_id: &str) {
     }
 
     db.user_groups.retain(|u| u.group_id != group_id);
+    cli_flow::okln(&format!("Successfully removed group {}", group_id));
 }
 
 pub fn list(db: &mut Database) {
@@ -60,6 +62,11 @@ pub fn grant(db: &mut Database, group_id: &str, hostname: &str) {
             .append(&mut vec![String::from(group_id)]);
         host.sync_todo = true;
     }
+
+    cli_flow::okln(&format!(
+        "Successfully granted group {} for host {}",
+        group_id, hostname
+    ));
 }
 
 pub fn revoke(db: &mut Database, group_id: &str, hostname: &str) {
@@ -83,6 +90,11 @@ pub fn revoke(db: &mut Database, group_id: &str, hostname: &str) {
         let host = db.host_get_mut(hostname).unwrap();
         host.authorized_user_groups.retain(|u| u != group_id);
     }
+
+    cli_flow::okln(&format!(
+        "Successfully revoked group {} from host {}",
+        group_id, hostname
+    ));
 }
 
 pub fn user_add(db: &mut Database, group_id: &str, user_id: &str) {
@@ -117,6 +129,11 @@ pub fn user_add(db: &mut Database, group_id: &str, user_id: &str) {
             }
         }
     }
+
+    cli_flow::okln(&format!(
+        "Successfully added user {} to group {}",
+        user_id, group_id
+    ));
 }
 
 pub fn user_remove(db: &mut Database, group_id: &str, user_id: &str) {
@@ -151,4 +168,9 @@ pub fn user_remove(db: &mut Database, group_id: &str, user_id: &str) {
             }
         }
     }
+
+    cli_flow::okln(&format!(
+        "Successfully removed user {} from group {}",
+        group_id, group_id
+    ));
 }

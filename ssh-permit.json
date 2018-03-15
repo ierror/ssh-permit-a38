@@ -5,9 +5,7 @@
       "authorized_users": [
         "bernhard@janetzki.eu"
       ],
-      "authorized_user_groups": [
-        "boerni@gmail.com"
-      ],
+      "authorized_user_groups": [],
       "sync_todo": false
     },
     {
@@ -45,6 +43,6 @@
       ]
     }
   ],
-  "modified_at": "2018-03-15 20:50:00.768105 UTC",
+  "modified_at": "2018-03-15 21:17:12.744685 UTC",
   "schema_version": "0.0.1"
 }

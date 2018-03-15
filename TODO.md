@@ -1,4 +1,5 @@
-* remove user from authorized and groups if user is deleted 
+* remove user from authorized and groups if user is deleted
+* remove group from authorized groups if group is deleted
 * unwrap rm
 * user list -> with permissions 
 * Catch JSON parsing errors
@@ -20,3 +21,4 @@
     cargo run -- host urlsmash.403.io add
     cargo run -- host example.com:22 add
     cargo run -- host list
+    cargo run -- host example.com:22 remove
