@@ -38,12 +38,31 @@ pub fn prompt_yes_no(msg: &str) -> String {
     yes_no
 }
 
+pub fn read_line(msg: &str, default: &str) -> String {
+    prompt(msg);
+
+    let mut input = String::from("");
+
+    io::stdin()
+        .read_line(&mut input)
+        .ok()
+        .expect("Couldn't read_line");
+
+    input = String::from(input.trim_right().trim_left());
+
+    if !default.is_empty() && input.is_empty() {
+        return String::from(default);
+    }
+
+    input
+}
+
 pub fn okln(msg: &str) {
     println!("{}", msg.green().bold());
 }
 
 pub fn warningln(msg: &str) {
-    println!("{}", msg.magenta());
+    println!("{} {}", "Warning:".magenta(), msg);
 }
 
 pub fn infoln(msg: &str) {

@@ -6,7 +6,7 @@
         "bernhard@janetzki.eu"
       ],
       "authorized_user_groups": [],
-      "sync_todo": true
+      "sync_todo": false
     },
     {
       "hostname": "janetzki.eu",
@@ -47,6 +47,6 @@
       ]
     }
   ],
-  "modified_at": "2018-03-16 13:32:49.523748 UTC",
+  "modified_at": "2018-03-16 21:04:19.291741 UTC",
   "schema_version": "0.0.1"
 }

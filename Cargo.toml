@@ -17,6 +17,7 @@ chrono = "0.4"
 ssh2 = "0.3"
 colored = "1.6"
 difference = "2.0"
+rpassword = "1.0.0"
 
 [dev-dependencies]
 assert_cli = "0.5"
