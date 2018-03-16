@@ -14,9 +14,3 @@
 * test for user grant / revoke
 * naming user_group vs. group
 * host.sync_todo = true wieder rein
-* EXAMPLES to DOC:
-
-    cargo run -- host urlsmash.403.io add
-    cargo run -- host example.com:22 add
-    cargo run -- host list
-    cargo run -- host example.com:22 remove

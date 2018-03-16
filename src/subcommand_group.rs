@@ -36,7 +36,14 @@ pub fn list(db: &mut Database) {
             "{}",
             (0..group.group_id.len()).map(|_| "=").collect::<String>()
         );
+
+        println!("\n## Members");
+        for user in &group.members {
+            println!("* {}", user);
+        }
     }
+
+    println!("");
 }
 
 pub fn grant(db: &mut Database, group_id: &str, hostname: &str) {

@@ -24,6 +24,7 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .author(env!("CARGO_PKG_AUTHORS"))
+
         // --database
         .arg(
             Arg::with_name("database")
@@ -182,7 +183,7 @@ fn main() {
         } else if matches.subcommand_matches("remove").is_some() {
             subcommand_host::remove(&mut db, &hostname);
         } else if matches.subcommand_matches("list").is_some() {
-            subcommand_host::list(&mut db);
+            subcommand_host::list(&mut db, &hostname);
         }
     }
     // user
@@ -194,7 +195,7 @@ fn main() {
         } else if matches.subcommand_matches("remove").is_some() {
             subcommand_user::remove(&mut db, &user_id);
         } else if let Some(_matches) = matches.subcommand_matches("list") {
-            subcommand_user::list(&mut db);
+            subcommand_user::list(&mut db, &user_id);
         } else if let Some(matches) = matches.subcommand_matches("grant") {
             let hostname = matches.value_of("host").unwrap();
             subcommand_user::grant(&mut db, &user_id, &hostname);

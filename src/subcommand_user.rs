@@ -47,8 +47,12 @@ pub fn remove(db: &mut Database, user_id: &str) {
     cli_flow::okln(&format!("Successfully removed user {}", user_id));
 }
 
-pub fn list(db: &mut Database) {
+pub fn list(db: &mut Database, user_id_filter: &str) {
     for user in &db.users {
+        if !user_id_filter.is_empty() && user_id_filter != user.user_id {
+            continue;
+        }
+
         println!("\n{}", user.user_id);
         println!(
             "{}",

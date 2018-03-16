@@ -1,10 +1,6 @@
-#[macro_use]
 extern crate assert_cli;
 
-use std::ffi::OsStr;
 use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
 use std::panic;
 use std::path::{Path, PathBuf};
 
@@ -281,6 +277,12 @@ fn group_add_remove() {
             .succeeds()
             .unwrap();
 
+        // group support remove
+        assert_cli_bin(test_id)
+            .with_args(&["group", "support", "remove"])
+            .fails()
+            .unwrap();
+
         // group list
         assert_cli_bin(test_id)
             .with_args(&["group", "list"])
@@ -302,7 +304,6 @@ fn group_add_duplicate_deny() {
         assert_cli_bin(test_id)
             .with_args(&["group", "dev-ops", "add"])
             .succeeds()
-            .stdin("ssh-")
             .unwrap();
 
         // group dev-ops add (duplicate)
@@ -317,6 +318,170 @@ fn group_add_duplicate_deny() {
             .succeeds()
             .stdout()
             .contains("dev-ops")
+            .unwrap();
+    })
+}
+
+#[test]
+fn user_grant_revoke() {
+    let test_id = line!();
+
+    run_test(test_id, || {
+        // user foo1 add
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "add"])
+            .stdin("ssh-")
+            .succeeds()
+            .unwrap();
+
+        // user foo2 add
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo2", "add"])
+            .stdin("ssh-")
+            .succeeds()
+            .unwrap();
+
+        // user foo3 add
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo3", "add"])
+            .stdin("ssh-")
+            .succeeds()
+            .unwrap();
+
+        // host 1.example.com add
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "add"])
+            .succeeds()
+            .unwrap();
+
+        // host 2.example.com add
+        assert_cli_bin(test_id)
+            .with_args(&["host", "2.example.com", "add"])
+            .succeeds()
+            .unwrap();
+
+        // user foo1 grant 1.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "grant", "1.example.com"])
+            .succeeds()
+            .unwrap();
+
+        // user foo1 grant 1.example.com (fail, second add)
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "grant", "1.example.com"])
+            .fails()
+            .unwrap();
+
+        // user foo1 grant 2.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "grant", "2.example.com"])
+            .succeeds()
+            .unwrap();
+
+        // user foo2 grant 2.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo2", "grant", "1.example.com"])
+            .succeeds()
+            .unwrap();
+
+        // host list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list"])
+            .succeeds()
+            .stdout()
+            .contains("foo1")
+            .stdout()
+            .contains("foo2")
+            .stdout()
+            .doesnt_contain("foo3")
+            .unwrap();
+
+        // host 1.example.com list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "list"])
+            .succeeds()
+            .stdout()
+            .contains("foo1")
+            .stdout()
+            .contains("foo2")
+            .stdout()
+            .doesnt_contain("foo3")
+            .unwrap();
+
+        // host 2.example.com list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "2.example.com", "list"])
+            .succeeds()
+            .stdout()
+            .contains("foo1")
+            .stdout()
+            .doesnt_contain("foo2")
+            .stdout()
+            .doesnt_contain("foo3")
+            .unwrap();
+
+        // user foo1 revoke 2.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "revoke", "2.example.com"])
+            .succeeds()
+            .unwrap();
+
+        // host list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list"])
+            .succeeds()
+            .stdout()
+            .contains("foo1")
+            .stdout()
+            .contains("foo2")
+            .unwrap();
+
+        // host 2.example.com list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "2.example.com", "list"])
+            .succeeds()
+            .stdout()
+            .doesnt_contain("foo1")
+            .stdout()
+            .doesnt_contain("foo2")
+            .unwrap();
+
+        // host 1.example.com list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "list"])
+            .succeeds()
+            .stdout()
+            .contains("foo1")
+            .unwrap();
+
+        // user foo1 revoke 1.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "revoke", "1.example.com"])
+            .succeeds()
+            .unwrap();
+
+        // host list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list"])
+            .succeeds()
+            .stdout()
+            .doesnt_contain("foo1")
+            .stdout()
+            .contains("foo2")
+            .unwrap();
+
+        // user foo2 revoke 1.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo2", "revoke", "1.example.com"])
+            .succeeds()
+            .unwrap();
+
+        // host list
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list"])
+            .succeeds()
+            .stdout()
+            .doesnt_contain("foo2")
             .unwrap();
     })
 }
