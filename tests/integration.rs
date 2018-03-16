@@ -145,18 +145,24 @@ fn user_add_remove() {
     let test_id = line!();
 
     run_test(test_id, || {
-        // user foo1@example.com add
+        // user foo1 add
         assert_cli_bin(test_id)
-            .with_args(&["user", "foo1@example.com", "add"])
-            .succeeds()
+            .with_args(&["user", "foo1", "add"])
             .stdin("ssh-")
+            .succeeds()
             .unwrap();
 
-        // user foo1@exmap2e.com add
+        // user foo2 add
         assert_cli_bin(test_id)
-            .with_args(&["user", "foo2@example.com", "add"])
-            .succeeds()
+            .with_args(&["user", "foo2", "add"])
             .stdin("ssh-")
+            .succeeds()
+            .unwrap();
+
+        // user foo3 add (missing key)
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo3", "add"])
+            .fails()
             .unwrap();
 
         // user list
@@ -164,7 +170,7 @@ fn user_add_remove() {
             .with_args(&["user", "list"])
             .succeeds()
             .stdout()
-            .contains("foo1@example.com")
+            .contains("foo1")
             .unwrap();
 
         // user list
@@ -172,18 +178,20 @@ fn user_add_remove() {
             .with_args(&["user", "list"])
             .succeeds()
             .stdout()
-            .contains("foo2@example.com")
+            .contains("foo1")
+            .stdout()
+            .contains("foo2")
             .unwrap();
 
-        // user foo1@example.com remove
+        // user foo1 remove
         assert_cli_bin(test_id)
-            .with_args(&["user", "foo1@example.com", "remove"])
+            .with_args(&["user", "foo1", "remove"])
             .succeeds()
             .unwrap();
 
-        // user foo2@example.com remove
+        // user foo2 remove
         assert_cli_bin(test_id)
-            .with_args(&["user", "foo2@example.com", "remove"])
+            .with_args(&["user", "foo2", "remove"])
             .succeeds()
             .unwrap();
 
@@ -192,9 +200,9 @@ fn user_add_remove() {
             .with_args(&["user", "list"])
             .succeeds()
             .stdout()
-            .doesnt_contain("foo1@example.com")
+            .doesnt_contain("foo1")
             .stdout()
-            .doesnt_contain("foo2@example.com")
+            .doesnt_contain("foo2")
             .unwrap();
     })
 }
@@ -204,16 +212,17 @@ fn user_add_duplicate_deny() {
     let test_id = line!();
 
     run_test(test_id, || {
-        // user foo1@example.com add
+        // user foo add
         assert_cli_bin(test_id)
-            .with_args(&["user", "foo@example.com", "add"])
-            .succeeds()
+            .with_args(&["user", "foo1", "add"])
             .stdin("ssh-")
+            .succeeds()
             .unwrap();
 
-        // user foo1@exmap2e.com add
+        // user foo add
         assert_cli_bin(test_id)
-            .with_args(&["user", "foo@example.com", "add"])
+            .with_args(&["user", "foo1", "add"])
+            .stdin("ssh-")
             .fails()
             .unwrap();
 
@@ -222,7 +231,7 @@ fn user_add_duplicate_deny() {
             .with_args(&["user", "list"])
             .succeeds()
             .stdout()
-            .contains("foo@example.com")
+            .contains("foo1")
             .unwrap();
     })
 }
@@ -232,18 +241,16 @@ fn group_add_remove() {
     let test_id = line!();
 
     run_test(test_id, || {
-        // group foo1@example.com add
+        // group dev-ops add
         assert_cli_bin(test_id)
             .with_args(&["group", "dev-ops", "add"])
             .succeeds()
-            .stdin("ssh-")
             .unwrap();
 
-        // group foo1@exmap2e.com add
+        // group fsupport add
         assert_cli_bin(test_id)
             .with_args(&["group", "support", "add"])
             .succeeds()
-            .stdin("ssh-")
             .unwrap();
 
         // group list
@@ -262,13 +269,13 @@ fn group_add_remove() {
             .contains("support")
             .unwrap();
 
-        // group foo1@example.com remove
+        // group dev-ops .com remove
         assert_cli_bin(test_id)
             .with_args(&["group", "dev-ops", "remove"])
             .succeeds()
             .unwrap();
 
-        // group foo2@example.com remove
+        // group support remove
         assert_cli_bin(test_id)
             .with_args(&["group", "support", "remove"])
             .succeeds()
@@ -291,20 +298,20 @@ fn group_add_duplicate_deny() {
     let test_id = line!();
 
     run_test(test_id, || {
-        // user foo1@example.com add
+        // group dev-ops add
         assert_cli_bin(test_id)
             .with_args(&["group", "dev-ops", "add"])
             .succeeds()
             .stdin("ssh-")
             .unwrap();
 
-        // user foo1@exmap2e.com add
+        // group dev-ops add (duplicate)
         assert_cli_bin(test_id)
             .with_args(&["group", "dev-ops", "add"])
             .fails()
             .unwrap();
 
-        // user list
+        // group list
         assert_cli_bin(test_id)
             .with_args(&["group", "list"])
             .succeeds()

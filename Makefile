@@ -26,8 +26,8 @@ run:
 clean:
 	cargo clean
 
-build: clean
-	cargo build
+release:
+	cargo build --release
 
 test:
 	 cargo test --jobs=4 -- --test-threads=4
