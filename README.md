@@ -2,7 +2,7 @@
 
 Central managment and deployment for SSH keys
 
-[![asciicast](https://asciinema.org/a/6bJAmxhpldwp43pcvC0WRwDqz.png)](https://asciinema.org/a/6bJAmxhpldwp43pcvC0WRwDqz)
+[![asciicast](https://asciinema.org/a/GyIB6XZj7Sotp9ZCekaQcLdDa.png)](https://asciinema.org/a/GyIB6XZj7Sotp9ZCekaQcLdDa)
 
 ### Features
 
