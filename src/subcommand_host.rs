@@ -40,9 +40,14 @@ pub fn remove(db: &mut Database, hostname: &str) {
     cli_flow::okln(&format!("Successfully removed host {}", hostname));
 }
 
-pub fn list(db: &mut Database, hostname_filter: &str) {
+pub fn list(db: &mut Database, hostname_filter: &str, print_raw: bool) {
     for host in &db.hosts {
         if !hostname_filter.is_empty() && hostname_filter != host.hostname {
+            continue;
+        }
+
+        if print_raw {
+            println!("{:?}", host);
             continue;
         }
 

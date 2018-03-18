@@ -102,7 +102,7 @@ impl Database {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Host {
     pub hostname: String,
     pub authorized_users: Vec<String>,
@@ -127,7 +127,7 @@ impl fmt::Display for Host {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     pub user_id: String,
     pub public_key: String,
@@ -139,7 +139,7 @@ impl fmt::Display for User {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UserGroup {
     pub group_id: String,
     pub members: Vec<String>,

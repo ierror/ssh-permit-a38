@@ -11,11 +11,13 @@ extern crate difference;
 extern crate rpassword;
 
 use clap::{App, Arg, SubCommand};
+use std::path::Path;
 
 mod cli_flow;
 mod database;
 mod subcommand_group;
 mod subcommand_host;
+mod subcommand_howto;
 mod subcommand_sync;
 mod subcommand_user;
 
@@ -55,6 +57,13 @@ fn main() {
                 // host list
                 .subcommand(
                     SubCommand::with_name("list")
+                    // --raw
+                    .arg(
+                        Arg::with_name("raw")
+                            .short("r")
+                            .long("raw")
+                            .help("Prints raw host struct")
+                    )
                 )
         )
 
@@ -77,6 +86,12 @@ fn main() {
                 // user list
                 .subcommand(
                     SubCommand::with_name("list")
+                    // --raw
+                    .arg(
+                        Arg::with_name("raw")
+                            .short("r")
+                            .long("raw")
+                            .help("Prints raw host struct"))
                 )
                 // user <user> grant <host>
                 .subcommand(
@@ -107,14 +122,31 @@ fn main() {
                 // group <group> add
                 .subcommand(
                     SubCommand::with_name("add")
+                        // group <group> add <user>
+                        .arg(Arg::with_name("user")
+                        .help("User")
+                        .index(1)
+                        .required(false))
                 )
                 // group <group> remove
                 .subcommand(
                     SubCommand::with_name("remove")
+                        // group <group> remove <user>
+                        .arg(Arg::with_name("user")
+                        .help("User")
+                        .index(1)
+                        .required(false))
                 )
                 // group list
                 .subcommand(
                     SubCommand::with_name("list")
+                    // --raw
+                    .arg(
+                        Arg::with_name("raw")
+                            .short("r")
+                            .long("raw")
+                            .help("Prints raw host struct")
+                    )
                 )
                 // group <group> grant <host>
                 .subcommand(
@@ -132,27 +164,25 @@ fn main() {
                             .index(1)
                             .required(true))
                 )
-                // group <group> user <user>
-                .subcommand(
-                    SubCommand::with_name("user")
-                        .arg(Arg::with_name("user")
-                            .help("User")
-                            .index(1)
-                            .required(true))
-                        .subcommand(
-                            SubCommand::with_name("add")
-                        )
-                        .subcommand(
-                            SubCommand::with_name("remove")
-                        )
-                )
         )
 
         // sync
         .subcommand(
             SubCommand::with_name("sync")
-                // Sync
                 .about("Sync pending changes to the related hosts")
+                // --password
+                .arg(
+                    Arg::with_name("password")
+                        .short("p")
+                        .long("password")
+                        .help("Use password authentication instead of public key")
+                        .takes_value(false),
+                )
+        )
+        // howto
+        .subcommand(
+            SubCommand::with_name("howto")
+                .about("Prints a Howto")
         )
         .get_matches();
 
@@ -163,17 +193,24 @@ fn main() {
         ..Default::default()
     };
 
-    db = match db.load(database_file) {
-        Ok(t) => t,
-        Err(e) => {
-            cli_flow::errorln(&format!(
-                "Unable to load {}: {}",
-                database_file,
-                e.to_string()
-            ));
-            return;
-        }
-    };
+    if Path::new(database_file).exists() {
+        db = match db.load(database_file) {
+            Ok(t) => t,
+            Err(e) => {
+                cli_flow::errorln(&format!(
+                    "Unable to load {}: {}",
+                    database_file,
+                    e.to_string()
+                ));
+                return;
+            }
+        };
+    } else {
+        cli_flow::warningln(&format!(
+            "Database file {} does not exist. Created a new one.",
+            database_file,
+        ));
+    }
 
     // host
     if let Some(matches) = matches.subcommand_matches("host") {
@@ -183,8 +220,8 @@ fn main() {
             subcommand_host::add(&mut db, &hostname);
         } else if matches.subcommand_matches("remove").is_some() {
             subcommand_host::remove(&mut db, &hostname);
-        } else if matches.subcommand_matches("list").is_some() {
-            subcommand_host::list(&mut db, &hostname);
+        } else if let Some(matches) = matches.subcommand_matches("list") {
+            subcommand_host::list(&mut db, &hostname, matches.is_present("raw"));
         }
     }
     // user
@@ -195,8 +232,8 @@ fn main() {
             subcommand_user::add(&mut db, &user_id);
         } else if matches.subcommand_matches("remove").is_some() {
             subcommand_user::remove(&mut db, &user_id);
-        } else if let Some(_matches) = matches.subcommand_matches("list") {
-            subcommand_user::list(&mut db, &user_id);
+        } else if let Some(matches) = matches.subcommand_matches("list") {
+            subcommand_user::list(&mut db, &user_id, matches.is_present("raw"));
         } else if let Some(matches) = matches.subcommand_matches("grant") {
             let hostname = matches.value_of("host").unwrap();
             subcommand_user::grant(&mut db, &user_id, &hostname);
@@ -209,31 +246,33 @@ fn main() {
     else if let Some(matches) = matches.subcommand_matches("group") {
         let group_id = matches.value_of("group").unwrap_or("");
 
-        if matches.subcommand_matches("add").is_some() {
-            subcommand_group::add(&mut db, &group_id);
-        } else if matches.subcommand_matches("remove").is_some() {
-            subcommand_group::remove(&mut db, &group_id);
-        } else if let Some(_matches) = matches.subcommand_matches("list") {
-            subcommand_group::list(&mut db);
+        if let Some(matches) = matches.subcommand_matches("add") {
+            match matches.value_of("user") {
+                Some(user_id) => subcommand_group::user_add(&mut db, &group_id, &user_id),
+                None => subcommand_group::add(&mut db, &group_id),
+            }
+        } else if let Some(matches) = matches.subcommand_matches("remove") {
+            match matches.value_of("user") {
+                Some(user_id) => subcommand_group::user_remove(&mut db, &group_id, &user_id),
+                None => subcommand_group::remove(&mut db, &group_id),
+            }
+        } else if let Some(matches) = matches.subcommand_matches("list") {
+            subcommand_group::list(&mut db, &group_id, matches.is_present("raw"));
         } else if let Some(matches) = matches.subcommand_matches("grant") {
             let hostname = matches.value_of("host").unwrap();
             subcommand_group::grant(&mut db, &group_id, &hostname);
         } else if let Some(matches) = matches.subcommand_matches("revoke") {
             let hostname = matches.value_of("host").unwrap();
             subcommand_group::revoke(&mut db, &group_id, &hostname);
-        } else if let Some(matches) = matches.subcommand_matches("user") {
-            let user_id = matches.value_of("user").unwrap_or("");
-
-            if matches.subcommand_matches("add").is_some() {
-                subcommand_group::user_add(&mut db, &group_id, &user_id);
-            } else if matches.subcommand_matches("remove").is_some() {
-                subcommand_group::user_remove(&mut db, &group_id, &user_id);
-            }
         }
     }
     // sync
-    else if matches.subcommand_matches("sync").is_some() {
-        subcommand_sync::sync(&mut db);
+    else if let Some(matches) = matches.subcommand_matches("sync") {
+        subcommand_sync::sync(&mut db, matches.is_present("password"));
+    }
+    // howto
+    else if matches.subcommand_matches("howto").is_some() {
+        subcommand_howto::print();
     }
 
     // save database

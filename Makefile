@@ -20,14 +20,17 @@ export RUST_BACKTRACE = 1
 fmt: 
 	cargo fmt
 
-run:
+pre_compile:
+	sed '/^```$$/d;' examples/commands.md > examples/commands.txt
+
+run: pre_compile
 	cargo run -- $(RUN_ARGS)
 
 clean:
 	cargo clean
 
-release:
-	cargo build --release
+release: pre_compile
+	cargo build --release --target=x86_64-apple-darwin
 
 test:
 	 cargo test --jobs=4 -- --test-threads=4

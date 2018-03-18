@@ -1,21 +1,11 @@
 {
   "hosts": [
     {
-      "hostname": "10.211.55.7",
+      "hostname": "urlsmash.403.io",
       "authorized_users": [
         "bernhard@janetzki.eu"
       ],
       "authorized_user_groups": [],
-      "sync_todo": false
-    },
-    {
-      "hostname": "janetzki.eu",
-      "authorized_users": [
-        "bernhard@janetzki.eu"
-      ],
-      "authorized_user_groups": [
-        "dev-ops"
-      ],
       "sync_todo": false
     }
   ],
@@ -25,28 +15,11 @@
       "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCgIcHBcyRYjRq51YhcduL0ifmd6f/glH+LniKzKZwXfplO3T/G1hk7C1KDwPzfRMS/mVPEIn8pOJ0yd1Y+fbh0hwlUz8LwIuCuos38bBiRUDaUcrwxOvFkFV3cre9pfa7u3WaKt7VZT6ac0AoFyRz36s15uPXa2yH8AX+yybL1UYswO9V3P5s4kacTC/0CRr+ltSjSa7C7W6U349jOfhE2H3orr5+Fe8kY10zcyVJsohiuOaiCgaeeSddAcr2t2koTa2/Wl0tNr6d8RAEnloF7EI9TKlshyVzfMaRDGFx1NSJWVupCaG2wuZzGG3gvuDjduCNqF0z4oOlm2y2TUdk1oOLv5037YdQzhqodnrNDeGvS7ZqjapSOpgN7UzH86J/HAzR/39BXm4UMBGL8YZJtGjo1hVePtBdqviQFhFRlHMbQGwQyJJpq2Usmr+MPmy5xYHdllrD1JzrRmaeaiVLPgDhbh13MIago2SVsbe95eBMdGAE/Bast34i6QuKyDqV64DkEBvJFgBeUjFGZS82+4fR/ARVj1J6kofQbbSuDYdASbZNMSFAAcp+cYd930UTxF5gicaMkWLNdrTzsVJ0P3rgazVsYFkJOrp3wTLdfsceApJaI43dC4ZUphXRvo5BjmayJitupkr7pblepMYXNfCvcOgbC5yuQVHDm6P49Q== boerni@steppenwolf"
     },
     {
-      "user_id": "boerni@gmail.com",
+      "user_id": "obelix",
       "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnytU8vYLYQhmkr+j12fPRkz04bmgSZ7aUcgPmNAtEkUBfpDlyHV/ABDe2jyY5iIJSw9q6r96kByzFn4e+GmCvwrSEqa22502aNlX3anhfN3N9OnLGulCsywOBnpQ6vQl8er5x4HeFjolTXImRe2X6pqZ/027m0BH5IZlPJWENbRRxhG2cXpeDl+xJjPVxwb8MDJmCxrHXl/qJhTjYLoHWpbKnPIVvspOU/4EdL4UL74mC6UJN1teYfwBXeD181CZjXOJlp6/Qo7FeHvVUVganr1WDB2UVxjZ5BzR9hH8lf/TNbQxsrhO+DiiXI8LiZR+LaEoOOJnVoF6CaM8JA5JN boerni@steppenwolf.fritz.box"
-    },
-    {
-      "user_id": "obelix@example.com",
-      "public_key": "ssh-"
     }
   ],
-  "user_groups": [
-    {
-      "group_id": "dev-ops",
-      "members": [
-        "bernhard@janetzki.eu"
-      ]
-    },
-    {
-      "group_id": "devs",
-      "members": [
-        "boerni@gmail.com"
-      ]
-    }
-  ],
-  "modified_at": "2018-03-18 19:15:40.292641 UTC",
-  "schema_version": "0.0.1"
+  "user_groups": [],
+  "modified_at": "2018-03-18 17:15:16.039270 UTC",
+  "schema_version": "1.0.0"
 }

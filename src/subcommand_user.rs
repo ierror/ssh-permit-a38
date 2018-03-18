@@ -47,9 +47,14 @@ pub fn remove(db: &mut Database, user_id: &str) {
     cli_flow::okln(&format!("Successfully removed user {}", user_id));
 }
 
-pub fn list(db: &mut Database, user_id_filter: &str) {
+pub fn list(db: &mut Database, user_id_filter: &str, print_raw: bool) {
     for user in &db.users {
         if !user_id_filter.is_empty() && user_id_filter != user.user_id {
+            continue;
+        }
+
+        if print_raw {
+            println!("{:?}", user);
             continue;
         }
 
@@ -113,6 +118,7 @@ pub fn revoke(db: &mut Database, user_id: &str, hostname: &str) {
     {
         let host = db.host_get_mut(hostname).unwrap();
         host.authorized_users.retain(|u| u != user_id);
+        host.sync_todo = true;
     }
 
     cli_flow::okln(&format!(

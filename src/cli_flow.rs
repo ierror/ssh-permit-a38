@@ -8,22 +8,26 @@ pub fn errorln(msg: &str) {
     exit(1);
 }
 
-pub fn prompt(msg: &str) {
-    print!("{} ", msg.yellow());
+pub fn prompt(msg: &str, colorful: bool) {
+    if colorful {
+        print!("{} ", msg.yellow());
+    } else {
+        print!("{} ", msg);
+    }
     io::stdout().flush().expect("Unable to flush");
 }
 
 pub fn promptln(msg: &str) {
-    println!("{}", msg.yellow());
+    println!("{}", msg);
 }
 
-pub fn prompt_yes_no(msg: &str) -> String {
+pub fn prompt_yes_no(msg: &str, colorful: bool) -> String {
     let mut yes_no;
 
     loop {
         yes_no = String::from("");
 
-        prompt(&format!("{}", msg));
+        prompt(&mut format!("{}", msg), colorful);
         io::stdin()
             .read_line(&mut yes_no)
             .ok()
@@ -39,7 +43,7 @@ pub fn prompt_yes_no(msg: &str) -> String {
 }
 
 pub fn read_line(msg: &str, default: &str) -> String {
-    prompt(msg);
+    prompt(msg, false);
 
     let mut input = String::from("");
 

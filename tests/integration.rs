@@ -21,15 +21,15 @@ fn settings_fixtures_copy(test_id: u32) -> PathBuf {
 }
 
 fn setup(test_id: u32) {
-    fs::remove_file(&settings_fixtures_copy(test_id).as_path());
+    fs::remove_file(&settings_fixtures_copy(test_id).as_path()).is_ok();
     fs::copy(
         &settings_fixtures_src().as_path(),
         &settings_fixtures_copy(test_id).as_path(),
-    );
+    ).unwrap();
 }
 
 fn teardown(test_id: u32) {
-    fs::remove_file(&settings_fixtures_copy(test_id).as_path());
+    fs::remove_file(&settings_fixtures_copy(test_id).as_path()).unwrap();
 }
 
 fn assert_cli_bin(test_id: u32) -> assert_cli::Assert {
@@ -144,14 +144,14 @@ fn user_add_remove() {
         // user foo1 add
         assert_cli_bin(test_id)
             .with_args(&["user", "foo1", "add"])
-            .stdin("ssh-")
+            .stdin("ssh-123")
             .succeeds()
             .unwrap();
 
         // user foo2 add
         assert_cli_bin(test_id)
             .with_args(&["user", "foo2", "add"])
-            .stdin("ssh-")
+            .stdin("ssh-456")
             .succeeds()
             .unwrap();
 
@@ -177,6 +177,16 @@ fn user_add_remove() {
             .contains("foo1")
             .stdout()
             .contains("foo2")
+            .unwrap();
+
+        // user list --raw
+        assert_cli_bin(test_id)
+            .with_args(&["user", "foo1", "list", "--raw"])
+            .succeeds()
+            .stdout()
+            .contains("ssh-123")
+            .stdout()
+            .doesnt_contain("ssh-456")
             .unwrap();
 
         // user foo1 remove

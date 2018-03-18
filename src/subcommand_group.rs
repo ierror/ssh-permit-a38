@@ -29,8 +29,17 @@ pub fn remove(db: &mut Database, group_id: &str) {
     cli_flow::okln(&format!("Successfully removed group {}", group_id));
 }
 
-pub fn list(db: &mut Database) {
+pub fn list(db: &mut Database, group_filter: &str, print_raw: bool) {
     for group in &db.user_groups {
+        if !group_filter.is_empty() && group_filter != group.group_id {
+            continue;
+        }
+
+        if print_raw {
+            println!("{:?}", group);
+            continue;
+        }
+
         println!("\n{}", group.group_id);
         println!(
             "{}",
@@ -96,6 +105,7 @@ pub fn revoke(db: &mut Database, group_id: &str, hostname: &str) {
     {
         let host = db.host_get_mut(hostname).unwrap();
         host.authorized_user_groups.retain(|u| u != group_id);
+        host.sync_todo = true;
     }
 
     cli_flow::okln(&format!(

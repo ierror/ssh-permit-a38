@@ -11,7 +11,7 @@ use std::net::TcpStream;
 use std::path::Path;
 use std::str;
 
-pub fn sync(db: &mut Database) {
+pub fn sync(db: &mut Database, password_auth: bool) {
     let mut syned_sth = false;
 
     for host in &mut db.hosts {
@@ -20,7 +20,10 @@ pub fn sync(db: &mut Database) {
             continue;
         }
 
-        cli_flow::infoln(&format!("Syncing host {}...", host.hostname));
+        println!("");
+        cli_flow::infoln(&format!("# Syncing host {}...", host.hostname));
+        println!("");
+
         syned_sth = true;
 
         // ssh connect to host
@@ -40,8 +43,26 @@ pub fn sync(db: &mut Database) {
         }
 
         // connect!
-        let tcp = match TcpStream::connect(&format!("{}:{}", hostname, port)) {
+        let ssh_tcp = match TcpStream::connect(&format!("{}:{}", hostname, port)) {
             Ok(t) => t,
+            Err(e) => {
+                cli_flow::errorln(&e.to_string());
+                continue;
+            }
+        };
+
+        // create ssh session
+        let mut ssh_sess = match Session::new() {
+            Some(s) => s,
+            None => {
+                cli_flow::errorln("Unable to creare SSH session.");
+                continue;
+            }
+        };
+
+        // ssh handshake
+        match ssh_sess.handshake(&ssh_tcp) {
+            Ok(h) => h,
             Err(e) => {
                 cli_flow::errorln(&e.to_string());
                 continue;
@@ -55,68 +76,84 @@ pub fn sync(db: &mut Database) {
             &ssh_user_default,
         );
 
-        // guess ssh key location
-        let private_key_path = match env::home_dir() {
-            Some(path) => path.join(".ssh").join("id_rsa"),
-            None => Path::new("").to_path_buf(),
-        };
+        if password_auth {
+            // prompt for password
+            cli_flow::prompt("Password:", false);
+            let ssh_password = rpassword::prompt_password_stdout("").unwrap();
 
-        let mut private_key_file = String::from(private_key_path.to_str().unwrap());
-        private_key_file = cli_flow::read_line(
-            &format!("Private key ({}):", private_key_file),
-            &private_key_file,
-        );
+            match ssh_sess.userauth_password(&ssh_user, &ssh_password) {
+                Ok(t) => {
+                    // drop ssh_password
+                    drop(ssh_password);
+                    t
+                }
+                Err(e) => {
+                    cli_flow::errorln(&e.to_string());
+                    // drop passphrase
+                    drop(ssh_password);
+                    continue;
+                }
+            };
+        } else {
+            // guess ssh key location
+            let private_key_path = match env::home_dir() {
+                Some(path) => path.join(".ssh").join("id_rsa"),
+                None => Path::new("").to_path_buf(),
+            };
 
-        // prompt for passphrase
-        cli_flow::prompt("Passphrase:");
-        let private_key_pass = rpassword::prompt_password_stdout("").unwrap();
+            let mut private_key_file = String::from(private_key_path.to_str().unwrap());
+            private_key_file = cli_flow::read_line(
+                &format!("Private key ({}):", private_key_file),
+                &private_key_file,
+            );
 
-        // create ssh session
-        let mut sess = match Session::new() {
-            Some(s) => s,
-            None => {
-                cli_flow::errorln("Unable to creare SSH session.");
-                continue;
-            }
-        };
+            // prompt for passphrase
+            cli_flow::prompt("Passphrase (empty for no passphrase):", false);
+            let private_key_pass = rpassword::prompt_password_stdout("").unwrap();
 
-        // ssh handshake
-        match sess.handshake(&tcp) {
-            Ok(h) => h,
-            Err(e) => {
-                cli_flow::errorln(&e.to_string());
-                continue;
-            }
-        };
-
-        // public key auth
-        match sess.userauth_pubkey_file(
-            &ssh_user,
-            None,
-            Path::new(&private_key_file),
-            Some(&private_key_pass),
-        ) {
-            Ok(t) => t,
-            Err(e) => {
-                cli_flow::errorln(&e.to_string());
-                continue;
+            // public key auth
+            match ssh_sess.userauth_pubkey_file(
+                &ssh_user,
+                None,
+                Path::new(&private_key_file),
+                Some(&private_key_pass),
+            ) {
+                Ok(t) => {
+                    // drop passphrase
+                    drop(private_key_pass);
+                    t
+                }
+                Err(e) => {
+                    cli_flow::errorln(&e.to_string());
+                    // drop passphrase
+                    drop(private_key_pass);
+                    continue;
+                }
             }
         }
 
-        // drop passphrase
-        drop(private_key_pass);
-
         // read current authorized_keys from host
-        let mut channel = sess.channel_session().unwrap();
-        channel.exec("echo $HOME").unwrap();
-        let mut home = String::new();
-        channel.read_to_string(&mut home).unwrap();
+        let mut remote_authorized_keys_file = String::new();
 
-        let mut remote_authorized_keys_file = format!(
-            "{}/.ssh/authorized_keys",
-            home.trim_right().trim_left().to_owned()
-        );
-        channel.wait_close().is_ok();
+        match ssh_sess.channel_session() {
+            Ok(mut channel) => {
+                let mut r_get_home = channel.exec("echo $HOME");
+
+                if r_get_home.is_ok() {
+                    let mut home = String::new();
+                    let r_read = channel.read_to_string(&mut home);
+
+                    if r_read.is_ok() {
+                        remote_authorized_keys_file = format!(
+                            "{}/.ssh/authorized_keys",
+                            home.trim_right().trim_left().to_owned()
+                        );
+                        channel.wait_close().is_ok();
+                    }
+                }
+            }
+            Err(_e) => {}
+        };
 
         // prompt for remote authorized_keys file
         remote_authorized_keys_file = cli_flow::read_line(
@@ -124,31 +161,34 @@ pub fn sync(db: &mut Database) {
             &remote_authorized_keys_file,
         );
 
-        let authorized_keys_res = sess.scp_recv(Path::new(&remote_authorized_keys_file));
+        let authorized_keys_res = ssh_sess.scp_recv(Path::new(&remote_authorized_keys_file));
         let mut authorized_keys_remote = Vec::new();
         let mut authorized_keys_remote_str = "";
 
-        if !authorized_keys_res.is_ok() {
-            cli_flow::warningln(&format!(
-                "Unable to read remote {} - {:?}",
-                remote_authorized_keys_file,
-                authorized_keys_res.err()
-            ));
-        } else {
-            let (mut ch, _stat) = authorized_keys_res.unwrap();
-            ch.read_to_end(&mut authorized_keys_remote).unwrap();
+        match authorized_keys_res {
+            Ok(r) => {
+                let (mut ch, _stat) = r;
+                ch.read_to_end(&mut authorized_keys_remote).unwrap();
 
-            authorized_keys_remote_str = match str::from_utf8(&authorized_keys_remote) {
-                Ok(v) => v,
-                Err(e) => {
-                    cli_flow::warningln(&format!(
-                        "{}: Invalid UTF-8 sequence: {}",
-                        host.hostname, e
-                    ));
-                    continue;
-                }
-            };
-        }
+                authorized_keys_remote_str = match str::from_utf8(&authorized_keys_remote) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        cli_flow::warningln(&format!(
+                            "{}: Invalid UTF-8 sequence: {}",
+                            host.hostname, e
+                        ));
+                        continue;
+                    }
+                };
+            }
+            Err(e) => {
+                cli_flow::warningln(&format!(
+                    "Unable to read remote {} - {}",
+                    remote_authorized_keys_file,
+                    e.to_string()
+                ));
+            }
+        };
 
         // collect authorized_keys to sync ...
         let mut authorized_keys_sync_vec: Vec<String> = Vec::new();
@@ -214,13 +254,20 @@ pub fn sync(db: &mut Database) {
         }
 
         // sync confirmation
-        if cli_flow::prompt_yes_no("Verify changes. Do you want to sync? (y/n):") == "n" {
+        if cli_flow::prompt_yes_no(
+            &mut format!(
+                "Verify changes. Do you want to sync to {}? (y/n):",
+                remote_authorized_keys_file
+            ),
+            true,
+        ) == "n"
+        {
             cli_flow::warningln(&format!("Skipping sync of {} as you told so\n\n", hostname));
             continue;
         }
 
         // sync!
-        let mut remote_file = sess.scp_send(
+        let mut remote_file = ssh_sess.scp_send(
             Path::new(&remote_authorized_keys_file),
             0o600,
             authorized_keys_sync_str.len() as u64,
