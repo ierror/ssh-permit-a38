@@ -13,8 +13,8 @@ Central managment and deployment for SSH keys
 
 ## Download prebuilt binaries (v0.0.1)
 
-* [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/untagged-94dd6630270e1c52de39/ssh-permit-a38-v0.0.1-x86_64-apple-darwin.zip)
-* [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/untagged-9c99cc16257f8a32cfab/ssh-permit-a38-v0.0.1-x86_64-unknown-linux-gnu.zip)
+* [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/v0.0.1/ssh-permit-a38-v0.0.1-x86_64-apple-darwin.zip)
+* [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/v0.0.1/ssh-permit-a38-v0.0.1-x86_64-unknown-linux-gnu.zip)
 
 ## Build from source
 
