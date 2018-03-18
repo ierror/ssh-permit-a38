@@ -7,13 +7,14 @@ Central managment and deployment for SSH keys
 ### Features
 
 * Central managament of public SSH keys and servers in a simple and readable JSON database  
-* Sync authorized user to the servers authorized_keys
+* Sync authorized users to the servers authorized_keys
 * User Groups
 * Diff of authorized_keys to sync and the existing one
 
-## Download prebuilt binaries
+## Download prebuilt binaries (v0.0.1)
 
 * [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/untagged-94dd6630270e1c52de39/ssh-permit-a38-v0.0.1-x86_64-apple-darwin.zip)
+* [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/untagged-9c99cc16257f8a32cfab/ssh-permit-a38-v0.0.1-x86_64-unknown-linux-gnu.zip)
 
 ## Build from source
 

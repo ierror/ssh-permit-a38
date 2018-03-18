@@ -31,6 +31,8 @@ clean:
 
 release: pre_compile
 	cargo build --release --target=x86_64-apple-darwin
+    # cargo build --release --target=x86_64-unknown-linux-gnu
+    # cargo build --release --target=i686_64-unknown-linux-gnu
 
 test:
 	 cargo test --jobs=4 -- --test-threads=4
