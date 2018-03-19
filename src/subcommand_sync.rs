@@ -267,21 +267,42 @@ pub fn sync(db: &mut Database, password_auth: bool) {
         }
 
         // sync!
-        let mut remote_file = ssh_sess.scp_send(
+        let mut remote_authorized_keys_fh = match ssh_sess.scp_send(
             Path::new(&remote_authorized_keys_file),
             0o600,
             authorized_keys_sync_str.len() as u64,
             None,
-        ).unwrap();
-        remote_file
-            .write(authorized_keys_sync_str.as_bytes())
-            .unwrap();
+        ) {
+            Ok(r) => r,
+            Err(e) => {
+                cli_flow::errorln(&format!(
+                    "Unable to upload {} - {}",
+                    remote_authorized_keys_file,
+                    &e.to_string()
+                ));
+                return;
+            }
+        };
+
+        match remote_authorized_keys_fh.write(authorized_keys_sync_str.as_bytes()) {
+            Ok(r) => r,
+            Err(e) => {
+                cli_flow::errorln(&format!(
+                    "Unable to upload {} - {}",
+                    remote_authorized_keys_file,
+                    &e.to_string()
+                ));
+                return;
+            }
+        };
+
+        // mark as synced
+        host.sync_todo = false;
 
         cli_flow::okln(&format!(
             "Successfully synced to {}\n",
             remote_authorized_keys_file
         ));
-        host.sync_todo = false;
     }
 
     if !syned_sth {
