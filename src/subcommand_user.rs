@@ -43,7 +43,19 @@ pub fn remove(db: &mut Database, user_id: &str) {
         cli_flow::errorln(&format!("User {} not known", user_id));
     }
 
+    // rm user
     db.users.retain(|u| u.user_id != user_id);
+
+    // delete user from hosts.authorized_users
+    for host in &mut db.hosts {
+        host.authorized_users.retain(move|u| u != user_id);
+    }
+
+    // delete user from user_groups.members
+    for user_group in &mut db.user_groups {
+        user_group.members.retain(move |u| u != user_id);
+    }
+
     cli_flow::okln(&format!("Successfully removed user {}", user_id));
 }
 
