@@ -25,7 +25,14 @@ pub fn remove(db: &mut Database, group_id: &str) {
         cli_flow::errorln(&format!("Group {} not known", group_id));
     }
 
+    // delete grouo
     db.user_groups.retain(|u| u.group_id != group_id);
+
+    // delete user from user_groups.members
+    for host in &mut db.hosts {
+        host.authorized_user_groups.retain(move |g| g != group_id);
+    }
+
     cli_flow::okln(&format!("Successfully removed group {}", group_id));
 }
 
