@@ -2,6 +2,8 @@
 
 Central managment and deployment for SSH keys
 
+[![Build Status](https://travis-ci.org/ierror/ssh-permit-a38.svg?branch=master)](https://travis-ci.org/ierror/ssh-permit-a38)
+
 [![asciicast](https://asciinema.org/a/GyIB6XZj7Sotp9ZCekaQcLdDa.png)](https://asciinema.org/a/GyIB6XZj7Sotp9ZCekaQcLdDa)
 
 ### Features
