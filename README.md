@@ -8,7 +8,7 @@ Central management and deployment for SSH keys
 
 ### Features
 
-* Central managament of public SSH keys and servers in a simple and readable JSON database  
+* Central management of public SSH keys and servers in a simple and readable JSON database  
 * Sync authorized users to the servers authorized_keys
 * User Groups
 * Diff of authorized_keys to sync and the existing one
