@@ -55,7 +55,7 @@ pub fn sync(db: &mut Database, password_auth: bool) {
         let mut ssh_sess = match Session::new() {
             Some(s) => s,
             None => {
-                cli_flow::errorln("Unable to creare SSH session.");
+                cli_flow::errorln("Unable to create SSH session.");
                 continue;
             }
         };
