@@ -51,7 +51,7 @@ ssh-permit-a38 user list
 
 ## list specific user
 ```
-cargo zwe -- user obelix list
+ssh-permit-a38 user obelix list
 ```
 
 ## user remove
