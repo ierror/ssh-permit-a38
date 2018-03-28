@@ -1,5 +1,3 @@
-* remove user from authorized and groups if user is deleted
-* remove group from authorized groups if group is deleted
 * unwrap rm
 * user list -> with permissions? 
 * Default "".to_owned() to None?

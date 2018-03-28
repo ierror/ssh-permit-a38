@@ -1,7 +1,21 @@
 SHELL := /bin/sh
 
-# use brew OpenSSL on Mac OSX
-ifeq ($(shell uname -s),Darwin)
+# Linux
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+        TARGET := x86_64-unknown-linux-gnu
+    else
+        TARGET := i686-unknown-linux-gnu
+    endif
+endif
+
+# OS X
+ifeq ($(UNAME_S),Darwin)
+    TARGET := x86_64-apple-darwin
+
+    # use brew OpenSSL on Mac OSX
     export OPENSSL_ROOT_DIR = /usr/local/opt/openssl
     export OPENSSL_LIB_DIR = /usr/local/opt/openssl/lib
     export OPENSSL_INCLUDE_DIR = /usr/local/opt/openssl/include
@@ -17,7 +31,7 @@ endif
 
 export RUST_BACKTRACE = 1
 
-fmt: 
+fmt:
 	cargo fmt
 
 pre_compile:
@@ -29,10 +43,22 @@ run: pre_compile
 clean:
 	cargo clean
 
-release: pre_compile
-	cargo build --release --target=x86_64-apple-darwin
-    # cargo build --release --target=x86_64-unknown-linux-gnu
-    # cargo build --release --target=i686_64-unknown-linux-gnu
+build:
+	cargo build --release --target=$(TARGET);
+
+build_linux_x86_64:
+	cd target && \
+	vagrant up linux_x86_64 --provision && \
+	vagrant ssh -c "cd /src && make build;" linux_x86_64 && \
+	vagrant halt linux_x86_64;
+	
+build_linux_i686:
+	cd target && \
+	vagrant up linux_i686 --provision && \
+	vagrant ssh -c "cd /src && make build;" linux_i686 && \
+	vagrant halt linux_i686;
+
+release: build build_linux_i686 build_linux_x86_64
 
 test:
 	 cargo test --jobs=4 -- --test-threads=4
