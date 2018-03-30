@@ -5,11 +5,26 @@ use difference::{Changeset, Difference};
 use rpassword;
 use ssh2::Session;
 use std::env;
+use std::error::Error;
 use std::io::Read;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::path::Path;
 use std::str;
+
+fn userauth_agent(sess: &mut Session, ssh_user: &str) -> Result<bool, Box<Error>> {
+    let mut agent = try!(sess.agent());
+    try!(agent.connect());
+    agent.list_identities().unwrap();
+    for identity in agent.identities() {
+        let identity = try!(identity);
+        if agent.userauth(&ssh_user, &identity).is_ok() {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
 
 pub fn sync(db: &mut Database, password_auth: bool) {
     let mut syned_sth = false;
@@ -95,39 +110,46 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                 }
             };
         } else {
-            // guess ssh key location
-            let private_key_path = match env::home_dir() {
-                Some(path) => path.join(".ssh").join("id_rsa"),
-                None => Path::new("").to_path_buf(),
+            let agent_authed = match userauth_agent(&mut ssh_sess, &ssh_user) {
+                Ok(true) => true,
+                Ok(false) | Err(_) => false,
             };
 
-            let mut private_key_file = String::from(private_key_path.to_str().unwrap());
-            private_key_file = cli_flow::read_line(
-                &format!("Private key ({}):", private_key_file),
-                &private_key_file,
-            );
+            if !agent_authed {
+                // guess ssh key location
+                let private_key_path = match env::home_dir() {
+                    Some(path) => path.join(".ssh").join("id_rsa"),
+                    None => Path::new("").to_path_buf(),
+                };
 
-            // prompt for passphrase
-            cli_flow::prompt("Passphrase (empty for no passphrase):", false);
-            let private_key_pass = rpassword::prompt_password_stdout("").unwrap();
+                let mut private_key_file = String::from(private_key_path.to_str().unwrap());
+                private_key_file = cli_flow::read_line(
+                    &format!("Private key ({}):", private_key_file),
+                    &private_key_file,
+                );
 
-            // public key auth
-            match ssh_sess.userauth_pubkey_file(
-                &ssh_user,
-                None,
-                Path::new(&private_key_file),
-                Some(&private_key_pass),
-            ) {
-                Ok(t) => {
-                    // drop passphrase
-                    drop(private_key_pass);
-                    t
-                }
-                Err(e) => {
-                    cli_flow::errorln(&e.to_string());
-                    // drop passphrase
-                    drop(private_key_pass);
-                    continue;
+                // prompt for passphrase
+                cli_flow::prompt("Passphrase (empty for no passphrase):", false);
+                let private_key_pass = rpassword::prompt_password_stdout("").unwrap();
+
+                // public key auth
+                match ssh_sess.userauth_pubkey_file(
+                    &ssh_user,
+                    None,
+                    Path::new(&private_key_file),
+                    Some(&private_key_pass),
+                ) {
+                    Ok(t) => {
+                        // drop passphrase
+                        drop(private_key_pass);
+                        t
+                    }
+                    Err(e) => {
+                        cli_flow::errorln(&e.to_string());
+                        // drop passphrase
+                        drop(private_key_pass);
+                        continue;
+                    }
                 }
             }
         }
