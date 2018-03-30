@@ -44,19 +44,19 @@ clean:
 	cargo clean
 
 build:
-	cargo build --release --target=$(TARGET);
+	cargo build --release --target=$(TARGET)
 
 build_linux_x86_64:
 	cd target && \
 	vagrant up linux_x86_64 --provision && \
 	vagrant ssh -c "cd /src && make build;" linux_x86_64 && \
-	vagrant halt linux_x86_64;
+	vagrant halt linux_x86_64
 	
 build_linux_i686:
 	cd target && \
 	vagrant up linux_i686 --provision && \
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
-	vagrant halt linux_i686;
+	vagrant halt linux_i686
 
 release: build build_linux_i686 build_linux_x86_64
 
