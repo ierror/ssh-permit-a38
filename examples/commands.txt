@@ -18,8 +18,15 @@ ssh-permit-a38 host 10.211.55.7:2222 add
 ssh-permit-a38 host list
 
 ## list specific host
- ```
 ssh-permit-a38 host urlsmash.403.io list
+
+## set host alias 
+ssh-permit-a38 host urlsmash.403.io alias um
+
+After this point you can use the alias or the hostname for all host related commands
+
+## remove host alias 
+ssh-permit-a38 host urlsmash.403.io alias
 
 ## remove host
 ssh-permit-a38 host example.com:2222 remove
@@ -35,7 +42,7 @@ ssh-permit-a38 user obelix add
 ssh-permit-a38 user list
 
 ## list specific user
-cargo zwe -- user obelix list
+ssh-permit-a38 user obelix list
 
 ## user remove
 ssh-permit-a38 user obelix remove

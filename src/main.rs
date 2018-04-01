@@ -1,14 +1,14 @@
+#[macro_use]
+extern crate serde_derive;
+
 extern crate chrono;
+extern crate clap;
 extern crate colored;
+extern crate difference;
+extern crate rpassword;
 extern crate serde;
 extern crate serde_json;
 extern crate ssh2;
-
-#[macro_use]
-extern crate serde_derive;
-extern crate clap;
-extern crate difference;
-extern crate rpassword;
 
 use clap::{App, Arg, SubCommand};
 use std::path::Path;
@@ -64,6 +64,14 @@ fn main() {
                             .long("raw")
                             .help("Prints raw host struct")
                     )
+                )
+                // host <host> alias <alias>
+                .subcommand(
+                    SubCommand::with_name("alias")
+                        .arg(Arg::with_name("alias")
+                            .help("Host alias")
+                            .index(1)
+                            .required(false))
                 )
         )
 
@@ -222,6 +230,8 @@ fn main() {
             subcommand_host::remove(&mut db, &hostname);
         } else if let Some(matches) = matches.subcommand_matches("list") {
             subcommand_host::list(&mut db, &hostname, matches.is_present("raw"));
+        } else if let Some(matches) = matches.subcommand_matches("alias") {
+            subcommand_host::alias(&mut db, &hostname, matches.value_of("alias"));
         }
     }
     // user

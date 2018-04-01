@@ -26,8 +26,20 @@ ssh-permit-a38 host list
 ```
 
 ## list specific host
- ```
+```
 ssh-permit-a38 host urlsmash.403.io list
+```
+
+## set host alias 
+```
+ssh-permit-a38 host urlsmash.403.io alias um
+```
+
+After this point you can use the alias or the hostname for all host related commands
+
+## remove host alias 
+```
+ssh-permit-a38 host urlsmash.403.io alias
 ```
 
 ## remove host

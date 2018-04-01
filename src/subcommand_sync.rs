@@ -16,6 +16,7 @@ fn userauth_agent(sess: &mut Session, ssh_user: &str) -> Result<bool, Box<Error>
     let mut agent = try!(sess.agent());
     try!(agent.connect());
     agent.list_identities().unwrap();
+
     for identity in agent.identities() {
         let identity = try!(identity);
         if agent.userauth(&ssh_user, &identity).is_ok() {

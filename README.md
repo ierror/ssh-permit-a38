@@ -11,12 +11,42 @@ Central management and deployment for SSH keys
 * Central management of public SSH keys and servers in a simple and readable JSON database  
 * Sync authorized users to the servers authorized_keys
 * User Groups
+* Host aliases
 * Diff of authorized_keys to sync and the existing one
 
-## Download prebuilt binaries (v0.0.1)
+## Latest release v0.1.0 - 2018-04-01
 
-* [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/v0.0.1/ssh-permit-a38-v0.0.1-x86_64-apple-darwin.zip)
-* [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/v0.0.1/ssh-permit-a38-v0.0.1-x86_64-unknown-linux-gnu.zip)
+### Download prebuilt binaries 
+
+* [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/v0.1.0/ssh-permit-a38-v0.1.0-x86_64-unknown-linux-gnu.zip)
+* [Linux i686](https://github.com/ierror/ssh-permit-a38/releases/download/v0.1.0/ssh-permit-a38-v0.1.0-i686-unknown-linux-gnu.zip)
+* [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/v0.1.0/ssh-permit-a38-v0.1.0-x86_64-apple-darwin.zip)
+
+[Previous Releases](https://github.com/ierror/ssh-permit-a38/releases)
+
+### Changelog 
+
+- Support for SSH agent authentication #4 - Thank you [@kdar](https://github.com/kdar)
+
+- Support for host aliases [#2](https://github.com/ierror/ssh-permit-a38/issues/2): 
+
+    - Set an alias "um" for hostname "urlsmash.403.io" 
+    ```
+    ssh-permit-a38 host urlsmash.403.io alias um
+    ```
+
+    After this point you can use the alias or the hostname for all host related commands.
+
+    - Remove an alias for hostname "urlsmash.403.io" 
+    ```
+    ssh-permit-a38 host urlsmash.403.io alias
+    ```
+    
+- Vagrant files and Makefile targets to build linux releases
+
+- Fixed Typos [#1](https://github.com/ierror/ssh-permit-a38/issues/1) [#3](https://github.com/ierror/ssh-permit-a38/issues/3) - Thank you [@0xflotus](https://github.com/0xflotus) and [@robwetz](https://github.com/robwetz)
+
+[Previous Changes](https://github.com/ierror/ssh-permit-a38/blob/master/CHANGELOG.md)
 
 ## Build from source
 
@@ -75,7 +105,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Bernhard Janetzki**
+* **Bernhard Janetzki** [@i_error](https://twitter.com/i_error)
 
 See also the list of [contributors](https://github.com/ierror/ssh-permit-a38/contributors) who participated in this project.
 
