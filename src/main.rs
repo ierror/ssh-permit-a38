@@ -43,9 +43,11 @@ fn main() {
             SubCommand::with_name("host")
                 // host <host>
                 .about("Host related actions")
-                        .arg(Arg::with_name("host:port")
-                            .help("Host")
-                            .index(1))
+                .arg(Arg::with_name("host:port")
+                .help("Host")
+                .index(1))
+                .alias("hosts")
+
                 // host <host> add
                 .subcommand(
                     SubCommand::with_name("add")
@@ -80,9 +82,11 @@ fn main() {
             SubCommand::with_name("user")
                 // user <host>
                 .about("User related actions")
-                        .arg(Arg::with_name("user")
-                            .help("User")
-                            .index(1))
+                .arg(Arg::with_name("user")
+                .help("User")
+                .index(1))
+                .alias("users")
+
                 // user <user> add
                 .subcommand(
                     SubCommand::with_name("add")
@@ -124,9 +128,11 @@ fn main() {
             SubCommand::with_name("group")
                 // group <host>
                 .about("Group related actions")
-                        .arg(Arg::with_name("group")
-                            .help("Group")
-                            .index(1))
+                .arg(Arg::with_name("group")
+                .help("Group")
+                .index(1))
+                .alias("groups")
+
                 // group <group> add
                 .subcommand(
                     SubCommand::with_name("add")
