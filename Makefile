@@ -81,7 +81,7 @@ release: clean pre_release build_linux_x86_64 build_linux_i686 build
 	git tag v$(VERSION)
 	git push origin v$(VERSION)
 
-	hub release create -a build/binaries/.zip v$(VERSION)
+	cd build/binaries/ && hub release create -a ssh-permit-a38-v$(VERSION)-x86_64-apple-darwin.zip -a ssh-permit-a38-v$(VERSION)-x86_64-unknown-linux-gnu.zip -a ssh-permit-a38-v$(VERSION)-i686-unknown-linux-gnu.zip v$(VERSION)
 
 	open https://github.com/ierror/ssh-permit-a38/releases
 

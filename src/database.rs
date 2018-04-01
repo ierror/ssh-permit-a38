@@ -7,7 +7,7 @@ use std::fmt;
 use std::fs::File;
 use std::path::Path;
 
-const SCHEMA_VERSION: &'static str = "1.0.0";
+const SCHEMA_VERSION: &'static str = "0.1.0";
 
 #[derive(Serialize, Deserialize)]
 pub struct Database {
@@ -40,7 +40,10 @@ impl Database {
     pub fn save<P: AsRef<Path>>(&mut self, path: P) {
         let file = File::create(path).unwrap();
         let now = Utc::now();
+
         self.modified_at = format!("{}", now.to_owned());
+        self.schema_version = SCHEMA_VERSION.to_owned();
+
         serde_json::to_writer_pretty(&file, &self).expect("Unable to write database file.");
     }
 
