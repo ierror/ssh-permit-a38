@@ -1,3 +1,4 @@
+.PHONY: build test
 SHELL := /bin/sh
 
 # Linux
@@ -34,7 +35,7 @@ export RUST_BACKTRACE = 1
 fmt:
 	cargo fmt
 
-pre_compile:
+pre_release:
 	sed '/^```$$/d;' examples/commands.md > examples/commands.txt
 
 run:
@@ -58,7 +59,30 @@ build_linux_i686:
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
 	vagrant halt linux_i686
 
-release: pre_compile build build_linux_i686 build_linux_x86_64
+release: # pre_release build_linux_x86_64 build_linux_i686 build
+    rm build/binaries/*.zip || true
+
+	# OS X
+	cp target/x86_64-apple-darwin/release/ssh-permit-a38 build/binaries/
+	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-x86_64-apple-darwin.zip ssh-permit-a38
+
+	# Linux x86_64
+	cp target/x86_64-unknown-linux-gnu/release/ssh-permit-a38 build/binaries/
+	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-x86_64-unknown-linux-gnu.zip ssh-permit-a38
+
+	# Linux i686
+	cp target/i686-unknown-linux-gnu/release/ssh-permit-a38 build/binaries/
+	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-i686-unknown-linux-gnu.zip ssh-permit-a38
+
+	git checkout master
+	git merge develop -m "bump v$(VERSION)"
+	git push origin master
+	git tag v$(VERSION)
+    git push origin v$(VERSION)
+
+	hub release create -a build/binaries/.zip v$(VERSION)
+
+	open https://github.com/ierror/ssh-permit-a38/releases
 
 test:
 	 cargo test --jobs=4 -- --test-threads=4
