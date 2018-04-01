@@ -45,7 +45,6 @@ clean:
 	cargo clean
 
 build:
-	cargo clean --target=$(TARGET)
 	cargo build --release --target=$(TARGET)
 
 build_linux_x86_64:
@@ -60,7 +59,7 @@ build_linux_i686:
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
 	vagrant halt linux_i686
 
-release: pre_release build_linux_x86_64 build_linux_i686 build
+release: clean pre_release build_linux_x86_64 build_linux_i686 build
 	rm build/binaries/*.zip || true
 
 	# OS X
@@ -75,6 +74,7 @@ release: pre_release build_linux_x86_64 build_linux_i686 build
 	cp target/i686-unknown-linux-gnu/release/ssh-permit-a38 build/binaries/
 	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-i686-unknown-linux-gnu.zip ssh-permit-a38
 
+	git push
 	git checkout master
 	git merge develop -m "bump v$(VERSION)"
 	git push origin master
