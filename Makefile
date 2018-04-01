@@ -45,7 +45,7 @@ clean:
 	cargo clean
 
 build:
-    cargo clean --target=$(TARGET)
+	cargo clean --target=$(TARGET)
 	cargo build --release --target=$(TARGET)
 
 build_linux_x86_64:
