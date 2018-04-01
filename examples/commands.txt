@@ -18,7 +18,6 @@ ssh-permit-a38 host 10.211.55.7:2222 add
 ssh-permit-a38 host list
 
 ## list specific host
- ```
 ssh-permit-a38 host urlsmash.403.io list
 
 ## remove host
@@ -35,7 +34,7 @@ ssh-permit-a38 user obelix add
 ssh-permit-a38 user list
 
 ## list specific user
-cargo zwe -- user obelix list
+ssh-permit-a38 user obelix list
 
 ## user remove
 ssh-permit-a38 user obelix remove

@@ -11,12 +11,39 @@ Central management and deployment for SSH keys
 * Central management of public SSH keys and servers in a simple and readable JSON database  
 * Sync authorized users to the servers authorized_keys
 * User Groups
+* Host aliases
 * Diff of authorized_keys to sync and the existing one
 
-## Download prebuilt binaries (v0.0.1)
+## Latest release v0.1.0 - 2018-04-01
+
+### Changelog 
+
+- Support for SSH agent authentication #4 - Thank you @kdar:
+
+- Support for host aliases #2: 
+
+    - Set an alias "um" for hostname "urlsmash.403.io" 
+    ```
+    ssh-permit-a38 host urlsmash.403.io alias um
+    ```
+
+    - Remove an alias for hostname "urlsmash.403.io" 
+    ```
+    ssh-permit-a38 host urlsmash.403.io alias
+    ```
+    
+- Vagrant files and Makefile targets to build linux releases
+
+- Fixed Typos #1 #3 - Thank you @0xflotus and @robwetz
+
+[Previous Changes](https://github.com/ierror/ssh-permit-a38/blob/master/CHANGELOG.md)
+
+### Download prebuilt binaries 
 
 * [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/v0.0.1/ssh-permit-a38-v0.0.1-x86_64-apple-darwin.zip)
 * [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/v0.0.1/ssh-permit-a38-v0.0.1-x86_64-unknown-linux-gnu.zip)
+
+[Previous Releases](https://github.com/ierror/ssh-permit-a38/releases)
 
 ## Build from source
 
@@ -75,7 +102,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Bernhard Janetzki**
+* **Bernhard Janetzki** [@i_error](https://twitter.com/i_error)
 
 See also the list of [contributors](https://github.com/ierror/ssh-permit-a38/contributors) who participated in this project.
 

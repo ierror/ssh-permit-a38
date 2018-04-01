@@ -44,18 +44,29 @@ impl Database {
         serde_json::to_writer_pretty(&file, &self).expect("Unable to write database file.");
     }
 
-    pub fn host_get(&self, hostname: &str) -> Option<&Host> {
+    pub fn host_get(&self, hostname_or_alias: &str) -> Option<&Host> {
         self.hosts
             .iter()
-            .position(|ref h| h.hostname == hostname)
+            .position(|ref h| {
+                h.hostname == hostname_or_alias || h.alias == Some(hostname_or_alias.to_owned())
+            })
             .map(|i| &self.hosts[i])
     }
 
-    pub fn host_get_mut(&mut self, hostname: &str) -> Option<&mut Host> {
+    pub fn host_get_mut(&mut self, hostname_or_alias: &str) -> Option<&mut Host> {
         self.hosts
             .iter()
-            .position(|ref h| h.hostname == hostname)
+            .position(|ref h| {
+                h.hostname == hostname_or_alias || h.alias == Some(hostname_or_alias.to_owned())
+            })
             .map(move |i| &mut self.hosts[i])
+    }
+
+    pub fn host_get_by_alias(&self, alias: &str) -> Option<&Host> {
+        self.hosts
+            .iter()
+            .position(|ref h| h.alias == Some(alias.to_owned()))
+            .map(|i| &self.hosts[i])
     }
 
     pub fn user_get(&self, user_id: &str) -> Option<&User> {
@@ -105,6 +116,10 @@ impl Database {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Host {
     pub hostname: String,
+
+    #[serde(default)]
+    pub alias: Option<String>,
+
     pub authorized_users: Vec<String>,
     pub authorized_user_groups: Vec<String>,
     pub sync_todo: bool,
@@ -114,6 +129,7 @@ impl Default for Host {
     fn default() -> Host {
         Host {
             hostname: String::from(""),
+            alias: None,
             authorized_users: vec![],
             authorized_user_groups: vec![],
             sync_todo: true,

@@ -37,7 +37,7 @@ fmt:
 pre_compile:
 	sed '/^```$$/d;' examples/commands.md > examples/commands.txt
 
-run: pre_compile
+run:
 	cargo run -- $(RUN_ARGS)
 
 clean:
@@ -47,18 +47,18 @@ build:
 	cargo build --release --target=$(TARGET)
 
 build_linux_x86_64:
-	cd target && \
+	cd build && \
 	vagrant up linux_x86_64 --provision && \
 	vagrant ssh -c "cd /src && make build;" linux_x86_64 && \
 	vagrant halt linux_x86_64
 	
 build_linux_i686:
-	cd target && \
+	cd build && \
 	vagrant up linux_i686 --provision && \
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
 	vagrant halt linux_i686
 
-release: build build_linux_i686 build_linux_x86_64
+release: pre_compile build build_linux_i686 build_linux_x86_64
 
 test:
 	 cargo test --jobs=4 -- --test-threads=4

@@ -137,6 +137,109 @@ fn host_add_duplicate_deny() {
 }
 
 #[test]
+fn host_alias() {
+    let test_id = line!();
+
+    run_test(test_id, || {
+        // add two hosts
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "add"])
+            .succeeds()
+            .unwrap();
+        assert_cli_bin(test_id)
+            .with_args(&["host", "2.example.com", "add"])
+            .succeeds()
+            .unwrap();
+
+        // try to alias unknown host
+        assert_cli_bin(test_id)
+            .with_args(&["host", "foo.example.com", "alias", "1"])
+            .fails()
+            .unwrap();
+
+        // try to alias with an alias where the hostname already exists
+        assert_cli_bin(test_id)
+            .with_args(&["host", "foo.example.com", "alias", "1.example.com"])
+            .fails()
+            .unwrap();
+
+        // check no alias were set
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list", "--raw"])
+            .succeeds()
+            .stdout()
+            .contains("alias: None")
+            .stdout()
+            .doesnt_contain("alias: \"")
+            .unwrap();
+
+        // alias 1.example.com
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "alias", "1"])
+            .succeeds()
+            .unwrap();
+
+        // check alias was set
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "list", "--raw"])
+            .succeeds()
+            .stdout()
+            .contains("alias: Some(\"1\")")
+            .stdout()
+            .doesnt_contain("alias: None")
+            .unwrap();
+
+        // check lookup by alias works
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1", "list"])
+            .succeeds()
+            .stdout()
+            .contains("1.example.com")
+            .stdout()
+            .doesnt_contain("2.example.com")
+            .unwrap();
+
+        // overwrite alias
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "alias", "one"])
+            .succeeds()
+            .unwrap();
+
+        // check alias was set
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "list", "--raw"])
+            .succeeds()
+            .stdout()
+            .contains("alias: Some(\"one\")")
+            .stdout()
+            .doesnt_contain("alias: None")
+            .unwrap();
+
+        // remove alias
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "alias"])
+            .succeeds()
+            .unwrap();
+
+        // check alias was removed
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "list", "--raw"])
+            .succeeds()
+            .stdout()
+            .contains("alias: None")
+            .stdout()
+            .doesnt_contain("alias: Some(\"one\")")
+            .unwrap();
+
+        // try to remove alias again results in error msg
+        assert_cli_bin(test_id)
+            .with_args(&["host", "1.example.com", "alias"])
+            .fails()
+            .unwrap();
+    })
+}
+
+#[test]
 fn user_add_remove() {
     let test_id = line!();
 
