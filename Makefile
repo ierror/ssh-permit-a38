@@ -59,8 +59,8 @@ build_linux_i686:
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
 	vagrant halt linux_i686
 
-release: # pre_release build_linux_x86_64 build_linux_i686 build
-    rm build/binaries/*.zip || true
+release: pre_release build_linux_x86_64 build_linux_i686 build
+	rm build/binaries/*.zip || true
 
 	# OS X
 	cp target/x86_64-apple-darwin/release/ssh-permit-a38 build/binaries/
@@ -78,7 +78,7 @@ release: # pre_release build_linux_x86_64 build_linux_i686 build
 	git merge develop -m "bump v$(VERSION)"
 	git push origin master
 	git tag v$(VERSION)
-    git push origin v$(VERSION)
+	git push origin v$(VERSION)
 
 	hub release create -a build/binaries/.zip v$(VERSION)
 
