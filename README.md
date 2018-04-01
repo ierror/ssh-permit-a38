@@ -26,7 +26,7 @@ Central management and deployment for SSH keys
 
 ### Changelog 
 
-- Support for SSH agent authentication #4 - Thank you [@kdar](https://github.com/kdar)
+- Support for SSH agent authentication [#4](https://github.com/ierror/ssh-permit-a38/issues/4): - Thank you [@kdar](https://github.com/kdar)
 
 - Support for host aliases [#2](https://github.com/ierror/ssh-permit-a38/issues/2): 
 
