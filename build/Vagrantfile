@@ -12,6 +12,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "linux_x86_64" do |linux_x86_64|
       # The most common configuration options are documented and commented below.
       linux_x86_64.vm.box = "ubuntu/artful64"
+      linux_x86_64.disksize.size = "20GB"
 
       linux_x86_64.vm.provider "virtualbox" do |vb|
          # Display the VirtualBox GUI when booting the machine
@@ -29,6 +30,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "linux_i686" do |linux_i686|
       # The most common configuration options are documented and commented below.
       linux_i686.vm.box = "ubuntu/artful32"
+      linux_i686.disksize.size = "20GB"
 
       linux_i686.vm.provider "virtualbox" do |vb|
          # Display the VirtualBox GUI when booting the machine
