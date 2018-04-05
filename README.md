@@ -20,7 +20,13 @@ Central management and deployment for SSH keys
 
 * [Linux x86_64](https://github.com/ierror/ssh-permit-a38/releases/download/v0.1.0/ssh-permit-a38-v0.1.0-x86_64-unknown-linux-gnu.zip)
 * [Linux i686](https://github.com/ierror/ssh-permit-a38/releases/download/v0.1.0/ssh-permit-a38-v0.1.0-i686-unknown-linux-gnu.zip)
+
 * [macOS](https://github.com/ierror/ssh-permit-a38/releases/download/v0.1.0/ssh-permit-a38-v0.1.0-x86_64-apple-darwin.zip)
+
+    or you can install [this Homebrew package](http://formulae.brew.sh/formula/ssh-permit-a38):
+    ```
+    brew install ssh-permit-a38
+    ```
 
 [Previous Releases](https://github.com/ierror/ssh-permit-a38/releases)
 
