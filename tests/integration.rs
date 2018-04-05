@@ -68,6 +68,20 @@ fn host_add_remove() {
             .stdin("ssh-")
             .unwrap();
 
+        // host list (check for existing host in fixture)
+        assert_cli_bin(test_id)
+            .with_args(&["host", "list"])
+            .succeeds()
+            .stdout()
+            .contains("existing.example.com")
+            .unwrap();
+
+        // remove existing host
+        assert_cli_bin(test_id)
+            .with_args(&["host", "existing.example.com", "remove"])
+            .succeeds()
+            .unwrap();
+
         // host list
         assert_cli_bin(test_id)
             .with_args(&["host", "list"])
@@ -113,20 +127,20 @@ fn host_add_duplicate_deny() {
     let test_id = line!();
 
     run_test(test_id, || {
-        // user foo1@example.com add
+        // host example.com add
         assert_cli_bin(test_id)
             .with_args(&["host", "example.com", "add"])
             .succeeds()
             .stdin("ssh-")
             .unwrap();
 
-        // user foo1@exmap2e.com add
+        // host examaple.com add
         assert_cli_bin(test_id)
             .with_args(&["host", "example.com", "add"])
             .fails()
             .unwrap();
 
-        // user list
+        // host list
         assert_cli_bin(test_id)
             .with_args(&["host", "list"])
             .succeeds()

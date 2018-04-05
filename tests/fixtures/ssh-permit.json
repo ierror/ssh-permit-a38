@@ -1,7 +1,15 @@
 {
-  "hosts": [],
+  "hosts": [
+    {
+      "hostname": "existing.example.com",
+      "alias": "existing",
+      "authorized_users": [],
+      "authorized_user_groups": [],
+      "sync_todo": true
+    }
+  ],
   "users": [],
   "user_groups": [],
-  "modified_at": "2018-03-11 20:35:56.910957 UTC",
-  "schema_version": "0.0.1"
+  "modified_at": "2018-04-01 20:35:56.910957 UTC",
+  "schema_version": "0.1.0"
 }
