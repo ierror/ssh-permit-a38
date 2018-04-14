@@ -60,10 +60,27 @@ build_linux_i686:
 	vagrant halt linux_i686
 
 release: clean pre_release build_linux_x86_64 build_linux_i686 build
+	sed -ibak 's/^version = ".*"$$/version = "$(VERSION)"/' Cargo.toml
+
+	# update release urls
+	sed -ibak 's/releases\/download\/v.*?\/ssh-permit-a38-v.*?-/releases\/download\/v$(VERSION)\/ssh-permit-a38-v$(VERSION)-/' README.md
+	# update release version an date
+	sed -ibak 's/^## Latest release v.*/## Latest release v$(VERSION) - $(shell date +%Y-%m-%d)/' README.md
+
+	rm README.mdbak
+	rm Cargo.tomlbak
+
+	git commit -a -m "bump $(VERSION)"
+	git push
+	git checkout master
+	git merge develop
+	git push origin master
+	git tag v$(VERSION)
+	git push origin v$(VERSION)
 	rm build/binaries/*.zip || true
 
 	# OS X
-	cp target/x86_64-apple-darwin/release/ssh-permit-a38 build/binaries/
+    cp target/x86_64-apple-darwin/release/ssh-permit-a38 build/binaries/
 	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-x86_64-apple-darwin.zip ssh-permit-a38
 
 	# Linux x86_64
@@ -73,13 +90,6 @@ release: clean pre_release build_linux_x86_64 build_linux_i686 build
 	# Linux i686
 	cp target/i686-unknown-linux-gnu/release/ssh-permit-a38 build/binaries/
 	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-i686-unknown-linux-gnu.zip ssh-permit-a38
-
-	git push
-	git checkout master
-	git merge develop -m "bump v$(VERSION)"
-	git push origin master
-	git tag v$(VERSION)
-	git push origin v$(VERSION)
 
 	cd build/binaries/ && hub release create -a ssh-permit-a38-v$(VERSION)-x86_64-apple-darwin.zip -a ssh-permit-a38-v$(VERSION)-x86_64-unknown-linux-gnu.zip -a ssh-permit-a38-v$(VERSION)-i686-unknown-linux-gnu.zip v$(VERSION)
 

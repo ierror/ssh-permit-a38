@@ -4,6 +4,8 @@ use database::Database;
 use difference::{Changeset, Difference};
 use rpassword;
 use ssh2::Session;
+use ssh_config;
+use std::collections::HashMap;
 use std::env;
 use std::error::Error;
 use std::io::Read;
@@ -28,6 +30,14 @@ fn userauth_agent(sess: &mut Session, ssh_user: &str) -> Result<bool, Box<Error>
 }
 
 pub fn sync(db: &mut Database, password_auth: bool) {
+    let ssh_config = match ssh_config::get() {
+        Ok(c) => c,
+        Err(e) => {
+            cli_flow::warningln(&e.to_string());
+            HashMap::new()
+        }
+    };
+
     let mut syned_sth = false;
 
     for host in &mut db.hosts {
@@ -44,22 +54,47 @@ pub fn sync(db: &mut Database, password_auth: bool) {
 
         // ssh connect to host
         // defaults for connection
-        let mut hostname = &*host.hostname;
-        let mut port = "22";
+        let mut ssh_host = &*host.hostname;
+        let mut ssh_port = "22";
+        let mut ssh_user = "root";
+
+        let mut ssh_config_used = false;
+
+        // is host to connect found in ssh_config?
+        for (cfg_host_label, cfg_host) in &ssh_config {
+            if cfg_host_label == ssh_host
+                || cfg_host_label == &(host.alias.clone()).unwrap_or("".to_string())
+                || cfg_host.hostname == ssh_host
+            {
+                cli_flow::infoln(&format!(
+                        "Found hostname or an alias {} in ssh_config, using config parameters (hostname, user, port) for connection",
+                        ssh_host
+                    ));
+
+                ssh_host = &cfg_host.hostname;
+                ssh_user = &cfg_host.user;
+                ssh_port = &cfg_host.port;
+                ssh_config_used = true;
+
+                break;
+            }
+        }
 
         // hostname:port format?
-        let host_splitted: Vec<&str> = host.hostname.split(':').collect();
+        if !ssh_config_used {
+            let host_splitted: Vec<&str> = host.hostname.split(':').collect();
 
-        // found one ':' in hostname
-        if host_splitted.len() == 2 {
-            if host_splitted[1].parse::<i32>().is_ok() {
-                hostname = &*host_splitted[0];
-                port = &*host_splitted[1];
+            // found one ':' in hostname
+            if host_splitted.len() == 2 {
+                if host_splitted[1].parse::<i32>().is_ok() {
+                    ssh_host = &*host_splitted[0];
+                    ssh_port = &*host_splitted[1];
+                }
             }
         }
 
         // connect!
-        let ssh_tcp = match TcpStream::connect(&format!("{}:{}", hostname, port)) {
+        let ssh_tcp = match TcpStream::connect(&format!("{}:{}", ssh_host, ssh_port)) {
             Ok(t) => t,
             Err(e) => {
                 cli_flow::errorln(&e.to_string());
@@ -85,28 +120,28 @@ pub fn sync(db: &mut Database, password_auth: bool) {
             }
         };
 
-        // promt for remote user
-        let ssh_user_default = "root";
-        let ssh_user = cli_flow::read_line(
-            &format!("SSH User ({}):", ssh_user_default),
-            &ssh_user_default,
-        );
+        // prompt for remote user
+        if !ssh_config_used {
+            ssh_user = &cli_flow::read_line(&format!("SSH User ({}):", ssh_user), &ssh_user);
+        } else {
+            cli_flow::infoln(&format!("SSH User: {}", ssh_user));
+        }
 
         if password_auth {
             // prompt for password
             cli_flow::prompt("Password:", false);
-            let ssh_password = rpassword::prompt_password_stdout("").unwrap();
+            let password = rpassword::prompt_password_stdout("").unwrap();
 
-            match ssh_sess.userauth_password(&ssh_user, &ssh_password) {
+            match ssh_sess.userauth_password(&ssh_user, &password) {
                 Ok(t) => {
                     // drop ssh_password
-                    drop(ssh_password);
+                    drop(password);
                     t
                 }
                 Err(e) => {
                     cli_flow::errorln(&e.to_string());
                     // drop passphrase
-                    drop(ssh_password);
+                    drop(password);
                     continue;
                 }
             };
@@ -123,8 +158,8 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                     None => Path::new("").to_path_buf(),
                 };
 
-                let mut private_key_file = String::from(private_key_path.to_str().unwrap());
-                private_key_file = cli_flow::read_line(
+                let mut private_key_file = private_key_path.to_str().unwrap();
+                private_key_file = &cli_flow::read_line(
                     &format!("Private key ({}):", private_key_file),
                     &private_key_file,
                 );
@@ -158,31 +193,28 @@ pub fn sync(db: &mut Database, password_auth: bool) {
         // read current authorized_keys from host
         let mut remote_authorized_keys_file = String::new();
 
-        match ssh_sess.channel_session() {
-            Ok(mut channel) => {
-                let mut r_get_home = channel.exec("echo $HOME");
+        if let Ok(mut channel) = ssh_sess.channel_session() {
+            let mut r_get_home = channel.exec("echo $HOME");
 
-                if r_get_home.is_ok() {
-                    let mut home = String::new();
-                    let r_read = channel.read_to_string(&mut home);
+            if r_get_home.is_ok() {
+                let mut home = String::new();
+                let r_read = channel.read_to_string(&mut home);
 
-                    if r_read.is_ok() {
-                        remote_authorized_keys_file = format!(
-                            "{}/.ssh/authorized_keys",
-                            home.trim_right().trim_left().to_owned()
-                        );
-                        channel.wait_close().is_ok();
-                    }
+                if r_read.is_ok() {
+                    remote_authorized_keys_file = format!(
+                        "{}/.ssh/authorized_keys",
+                        home.trim_right().trim_left().to_owned()
+                    );
+                    channel.wait_close().is_ok();
                 }
             }
-            Err(_e) => {}
         };
 
         // prompt for remote authorized_keys file
         remote_authorized_keys_file = cli_flow::read_line(
             &format!("Remote authorized_keys ({}):", remote_authorized_keys_file),
             &remote_authorized_keys_file,
-        );
+        ).to_owned();
 
         let authorized_keys_res = ssh_sess.scp_recv(Path::new(&remote_authorized_keys_file));
         let mut authorized_keys_remote = Vec::new();
@@ -285,7 +317,7 @@ pub fn sync(db: &mut Database, password_auth: bool) {
             true,
         ) == "n"
         {
-            cli_flow::warningln(&format!("Skipping sync of {} as you told so\n\n", hostname));
+            cli_flow::warningln(&format!("Skipping sync of {} as you told so\n\n", ssh_host));
             continue;
         }
 

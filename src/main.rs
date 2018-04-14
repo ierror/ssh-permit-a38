@@ -15,6 +15,7 @@ use std::path::Path;
 
 mod cli_flow;
 mod database;
+mod ssh_config;
 mod subcommand_group;
 mod subcommand_host;
 mod subcommand_howto;

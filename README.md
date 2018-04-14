@@ -10,11 +10,12 @@ Central management and deployment for SSH keys
 
 * Central management of public SSH keys and servers in a simple and readable JSON database  
 * Sync authorized users to the servers authorized_keys
+* SSH config support for the sync command connection paramaters (Hostname, User, Port)
 * User Groups
 * Host aliases
 * Diff of authorized_keys to sync and the existing one
 
-## Latest release v0.1.0 - 2018-04-01
+## Latest release v0.2.0 - 2018-04-14
 
 ### Download prebuilt binaries 
 
@@ -32,25 +33,11 @@ Central management and deployment for SSH keys
 
 ### Changelog 
 
-- Support for SSH agent authentication [#4](https://github.com/ierror/ssh-permit-a38/issues/4): - Thank you [@kdar](https://github.com/kdar)
+## v0.2.0 - 2018-04-11
 
-- Support for host aliases [#2](https://github.com/ierror/ssh-permit-a38/issues/2): 
+- Support for SSH config files [#5](https://github.com/ierror/ssh-permit-a38/issues/5)
 
-    - Set an alias "um" for hostname "urlsmash.403.io" 
-    ```
-    ssh-permit-a38 host urlsmash.403.io alias um
-    ```
-
-    After this point you can use the alias or the hostname for all host related commands.
-
-    - Remove an alias for hostname "urlsmash.403.io" 
-    ```
-    ssh-permit-a38 host urlsmash.403.io alias
-    ```
-    
-- Vagrant files and Makefile targets to build linux releases
-
-- Fixed Typos [#1](https://github.com/ierror/ssh-permit-a38/issues/1) [#3](https://github.com/ierror/ssh-permit-a38/issues/3) - Thank you [@0xflotus](https://github.com/0xflotus) and [@robwetz](https://github.com/robwetz)
+    If an ssh-permit-a38 hostname or alias matches the ssh configs Host (or Hostname) Hostname, User, Port information are used for authorized_keys sync connection
 
 [Previous Changes](https://github.com/ierror/ssh-permit-a38/blob/master/CHANGELOG.md)
 

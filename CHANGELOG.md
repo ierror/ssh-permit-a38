@@ -1,8 +1,14 @@
 # SSH Permit A38 - Changelog
 
+## v0.2.0 - 2018-04-11
+
+- Support for SSH config files [#5](https://github.com/ierror/ssh-permit-a38/issues/5)
+
+    If an ssh-permit-a38 hostname or alias matches the ssh configs Host (or Hostname) Hostname, User, Port information are used for authorized_keys sync connection
+    
 ## v0.1.0 - 2018-04-01
 
-- Support for SSH agent authentication #4 - Thank you [@kdar:](https://github.com/kdar:)
+- Support for SSH agent authentication [#4](https://github.com/ierror/ssh-permit-a38/issues/4) - Thank you [@kdar:](https://github.com/kdar:)
 
 - Support for host aliases [#2](https://github.com/ierror/ssh-permit-a38/issues/2): 
 

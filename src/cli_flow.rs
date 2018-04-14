@@ -42,20 +42,20 @@ pub fn prompt_yes_no(msg: &str, colorful: bool) -> String {
     yes_no
 }
 
-pub fn read_line(msg: &str, default: &str) -> String {
+pub fn read_line<'a>(msg: &str, default: &'a str) -> &'a str {
     prompt(msg, false);
 
-    let mut input = String::from("");
+    let mut input = "";
 
     io::stdin()
-        .read_line(&mut input)
+        .read_line(&mut input.to_owned())
         .ok()
         .expect("Couldn't read_line");
 
-    input = String::from(input.trim_right().trim_left());
+    input = input.trim_right().trim_left();
 
     if !default.is_empty() && input.is_empty() {
-        return String::from(default);
+        return default;
     }
 
     input
