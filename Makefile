@@ -80,7 +80,7 @@ release: clean pre_release build_linux_x86_64 build_linux_i686 build
 	rm build/binaries/*.zip || true
 
 	# OS X
-    cp target/x86_64-apple-darwin/release/ssh-permit-a38 build/binaries/
+	cp target/x86_64-apple-darwin/release/ssh-permit-a38 build/binaries/
 	cd build/binaries/ && zip --move ssh-permit-a38-v$(VERSION)-x86_64-apple-darwin.zip ssh-permit-a38
 
 	# Linux x86_64
