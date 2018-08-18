@@ -63,7 +63,7 @@ build_linux_i686:
 
 release: clean pre_release build_linux_x86_64 build_linux_i686 build
 	# update release urls
-	sed -ibak 's/releases\/download\/v.*?\/ssh-permit-a38-v.*?-/releases\/download\/v$(VERSION)\/ssh-permit-a38-v$(VERSION)-/' README.md
+	sed -ibak 's/releases\/download\/v[^/]*\/ssh-permit-a38-v[^/]*-/releases\/download\/v$(VERSION)\/ssh-permit-a38-v$(VERSION)-/' README.md
 	# update release version an date
 	sed -ibak 's/^## Latest release v.*/## Latest release v$(VERSION) - $(shell date +%Y-%m-%d)/' README.md
 
@@ -93,6 +93,7 @@ release: clean pre_release build_linux_x86_64 build_linux_i686 build
 
 	cd build/binaries/ && hub release create -a ssh-permit-a38-v$(VERSION)-x86_64-apple-darwin.zip -a ssh-permit-a38-v$(VERSION)-x86_64-unknown-linux-gnu.zip -a ssh-permit-a38-v$(VERSION)-i686-unknown-linux-gnu.zip v$(VERSION)
 
+	git checkout develop
 	open https://github.com/ierror/ssh-permit-a38/releases
 
 test:
