@@ -45,6 +45,7 @@ clean:
 	cargo clean
 
 build:
+	rustup update stable
 	cargo build --release --target=$(TARGET)
 
 build_linux_x86_64:
@@ -59,7 +60,7 @@ build_linux_i686:
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
 	vagrant halt linux_i686
 
-release: clean pre_release build_linux_x86_64 build_linux_i686 build
+release: clean pre_release
 	sed -ibak 's/^version = ".*"$$/version = "$(VERSION)"/' Cargo.toml
 
 	# update release urls

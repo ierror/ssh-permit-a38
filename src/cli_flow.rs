@@ -42,23 +42,22 @@ pub fn prompt_yes_no(msg: &str, colorful: bool) -> String {
     yes_no
 }
 
-pub fn read_line<'a>(msg: &str, default: &'a str) -> &'a str {
+pub fn read_line<'a>(msg: &str, default: &'a String) -> String {
     prompt(msg, false);
 
-    let mut input = "";
+    let mut input = String::new();
 
     io::stdin()
-        .read_line(&mut input.to_owned())
+        .read_line(&mut input)
         .ok()
         .expect("Couldn't read_line");
 
-    input = input.trim_right().trim_left();
-
-    if !default.is_empty() && input.is_empty() {
-        return default;
+    input = input.trim_right().trim_left().to_string();
+    if !input.is_empty() {
+        return input;
     }
 
-    input
+    default.to_owned()
 }
 
 pub fn okln(msg: &str) {

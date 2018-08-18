@@ -193,6 +193,14 @@ fn main() {
                         .help("Use password authentication instead of public key")
                         .takes_value(false),
                 )
+                // --yes-authorized-keys-prompt
+                .arg(
+                    Arg::with_name("yes_authorized_keys_prompt")
+                        .short("yakp")
+                        .long("yes-authorized-keys-prompt")
+                        .help("Automatic yes to authorized_keys location prompts")
+                        .takes_value(false),
+                )
         )
         // howto
         .subcommand(
@@ -285,7 +293,11 @@ fn main() {
     }
     // sync
     else if let Some(matches) = matches.subcommand_matches("sync") {
-        subcommand_sync::sync(&mut db, matches.is_present("password"));
+        subcommand_sync::sync(
+            &mut db,
+            matches.is_present("password"),
+            matches.is_present("yes_authorized_keys_prompt"),
+        );
     }
     // howto
     else if matches.subcommand_matches("howto").is_some() {

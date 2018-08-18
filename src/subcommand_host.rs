@@ -23,12 +23,10 @@ pub fn add(db: &mut Database, hostname: &str) {
     }
 
     // add new host
-    let mut host_new = vec![
-        Host {
-            hostname: hostname.to_owned(),
-            ..Default::default()
-        },
-    ];
+    let mut host_new = vec![Host {
+        hostname: hostname.to_owned(),
+        ..Default::default()
+    }];
 
     db.hosts.append(&mut host_new);
     cli_flow::okln(&format!("Successfully added host {}", hostname));
@@ -79,7 +77,8 @@ pub fn list(db: &mut Database, hostname_filter: &str, print_raw: bool) {
 pub fn alias(db: &mut Database, hostname: &str, alias_opt: Option<&str>) {
     {
         // filter host by hostname only
-        let host_lookup_by_hostname = db.hosts
+        let host_lookup_by_hostname = db
+            .hosts
             .iter()
             .position(|ref h| h.hostname == hostname)
             .map(|i| &db.hosts[i]);

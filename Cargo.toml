@@ -1,7 +1,7 @@
 [package]
 name = "ssh_permit_a38"
 description = "Central managment and deployment for SSH keys"
-version = "0.2.0"
+version = ""
 authors = ["Bernhard Janetzki <boerni@gmail.com>"]
 
 [[bin]]

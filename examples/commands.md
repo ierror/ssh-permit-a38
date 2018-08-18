@@ -131,10 +131,10 @@ Sync
 
 ## With public key authentication
 ```
-ssh-permit-a38 sync
+ssh-permit-a38 sync -y
 ```
 
 ## With password authentication
 ```
-ssh-permit-a38 sync --password
+ssh-permit-a38 sync --password -y
 ```

@@ -8,12 +8,10 @@ pub fn add(db: &mut Database, group_id: &str) {
     }
 
     // add new group
-    let mut group_new = vec![
-        UserGroup {
-            group_id: group_id.to_owned(),
-            members: vec![],
-        },
-    ];
+    let mut group_new = vec![UserGroup {
+        group_id: group_id.to_owned(),
+        members: vec![],
+    }];
 
     db.user_groups.append(&mut group_new);
     cli_flow::okln(&format!("Successfully added group {}", group_id));

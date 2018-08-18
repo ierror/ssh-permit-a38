@@ -65,7 +65,8 @@ pub fn get() -> Result<HashMap<String, SSHConfigHost>, Box<Error>> {
             );
         }
         // config option
-        else if !host.is_empty() && !line.trim().is_empty()
+        else if !host.is_empty()
+            && !line.trim().is_empty()
             && [' ', '\t'].contains(&line.chars().next().unwrap())
         {
             line = line.trim().to_owned();

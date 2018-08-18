@@ -8,8 +8,8 @@ use ssh_config;
 use std::collections::HashMap;
 use std::env;
 use std::error::Error;
-use std::io::Read;
 use std::io::prelude::*;
+use std::io::Read;
 use std::net::TcpStream;
 use std::path::Path;
 use std::str;
@@ -29,7 +29,7 @@ fn userauth_agent(sess: &mut Session, ssh_user: &str) -> Result<bool, Box<Error>
     Ok(false)
 }
 
-pub fn sync(db: &mut Database, password_auth: bool) {
+pub fn sync(db: &mut Database, password_auth: bool, yes_authorized_keys_prompt: bool) {
     let ssh_config = match ssh_config::get() {
         Ok(c) => c,
         Err(e) => {
@@ -56,7 +56,9 @@ pub fn sync(db: &mut Database, password_auth: bool) {
         // defaults for connection
         let mut ssh_host = &*host.hostname;
         let mut ssh_port = "22";
-        let mut ssh_user = "root";
+
+        let mut ssh_user = String::new();
+        let ssh_user_default = "root";
 
         let mut ssh_config_used = false;
 
@@ -67,12 +69,12 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                 || cfg_host.hostname == ssh_host
             {
                 cli_flow::infoln(&format!(
-                        "Found hostname or an alias {} in ssh_config, using config parameters (hostname, user, port) for connection",
+                        "Found hostname or alias {} in ssh_config, using config parameters (hostname, user, port) for connection",
                         ssh_host
                     ));
 
                 ssh_host = &cfg_host.hostname;
-                ssh_user = &cfg_host.user;
+                ssh_user = cfg_host.user.to_owned();
                 ssh_port = &cfg_host.port;
                 ssh_config_used = true;
 
@@ -122,10 +124,15 @@ pub fn sync(db: &mut Database, password_auth: bool) {
 
         // prompt for remote user
         if !ssh_config_used {
-            ssh_user = &cli_flow::read_line(&format!("SSH User ({}):", ssh_user), &ssh_user);
+            ssh_user = cli_flow::read_line(
+                &format!("SSH User ({}):", ssh_user_default),
+                &ssh_user_default.to_owned(),
+            ).to_owned();
         } else {
             cli_flow::infoln(&format!("SSH User: {}", ssh_user));
         }
+
+        cli_flow::infoln(&format!(">>> SSH User: {}", ssh_user));
 
         if password_auth {
             // prompt for password
@@ -158,10 +165,10 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                     None => Path::new("").to_path_buf(),
                 };
 
-                let mut private_key_file = private_key_path.to_str().unwrap();
-                private_key_file = &cli_flow::read_line(
-                    &format!("Private key ({}):", private_key_file),
-                    &private_key_file,
+                let mut private_key_file_default = private_key_path.to_str().unwrap();
+                let private_key_file = &cli_flow::read_line(
+                    &format!("Private key ({}):", private_key_file_default),
+                    &private_key_file_default.to_owned(),
                 );
 
                 // prompt for passphrase
@@ -191,7 +198,7 @@ pub fn sync(db: &mut Database, password_auth: bool) {
         }
 
         // read current authorized_keys from host
-        let mut remote_authorized_keys_file = String::new();
+        let mut remote_authorized_keys_file_default = String::new();
 
         if let Ok(mut channel) = ssh_sess.channel_session() {
             let mut r_get_home = channel.exec("echo $HOME");
@@ -201,7 +208,7 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                 let r_read = channel.read_to_string(&mut home);
 
                 if r_read.is_ok() {
-                    remote_authorized_keys_file = format!(
+                    remote_authorized_keys_file_default = format!(
                         "{}/.ssh/authorized_keys",
                         home.trim_right().trim_left().to_owned()
                     );
@@ -211,10 +218,22 @@ pub fn sync(db: &mut Database, password_auth: bool) {
         };
 
         // prompt for remote authorized_keys file
-        remote_authorized_keys_file = cli_flow::read_line(
-            &format!("Remote authorized_keys ({}):", remote_authorized_keys_file),
-            &remote_authorized_keys_file,
-        ).to_owned();
+        let mut remote_authorized_keys_file = String::new();
+
+        if yes_authorized_keys_prompt {
+            cli_flow::infoln(&format!(
+                "Remote authorized_keys: {}",
+                remote_authorized_keys_file_default
+            ));
+        } else {
+            remote_authorized_keys_file = cli_flow::read_line(
+                &format!(
+                    "Remote authorized_keys ({}):",
+                    remote_authorized_keys_file_default
+                ),
+                &remote_authorized_keys_file_default,
+            ).to_owned();
+        }
 
         let authorized_keys_res = ssh_sess.scp_recv(Path::new(&remote_authorized_keys_file));
         let mut authorized_keys_remote = Vec::new();
@@ -255,13 +274,11 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                     // build e.g.
                     // # mail@example.com
                     // ssh-rsa ...
-                    authorized_keys_sync_vec.append(&mut vec![
-                        format!(
-                            "# {}\n{}",
-                            authorized_user_id,
-                            String::from(&*user.public_key)
-                        ),
-                    ]);
+                    authorized_keys_sync_vec.append(&mut vec![format!(
+                        "# {}\n{}",
+                        authorized_user_id,
+                        String::from(&*user.public_key)
+                    )]);
                 }
             }
         }
@@ -273,9 +290,11 @@ pub fn sync(db: &mut Database, password_auth: bool) {
                     for user_id in &group.members {
                         for user in &db.users {
                             if user_id == &user.user_id {
-                                authorized_keys_sync_vec.append(&mut vec![
-                                    format!("# {}\n{}", user_id, String::from(&*user.public_key)),
-                                ]);
+                                authorized_keys_sync_vec.append(&mut vec![format!(
+                                    "# {}\n{}",
+                                    user_id,
+                                    String::from(&*user.public_key)
+                                )]);
                                 break;
                             }
                         }
