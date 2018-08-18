@@ -15,7 +15,7 @@ Central management and deployment for SSH keys
 * Host aliases
 * Diff of authorized_keys to sync and the existing one
 
-## Latest release v - 2018-08-18
+## Latest release v0.2.0 - 2018-08-18
 
 ### Download prebuilt binaries 
 

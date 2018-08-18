@@ -132,8 +132,6 @@ pub fn sync(db: &mut Database, password_auth: bool, yes_authorized_keys_prompt: 
             cli_flow::infoln(&format!("SSH User: {}", ssh_user));
         }
 
-        cli_flow::infoln(&format!(">>> SSH User: {}", ssh_user));
-
         if password_auth {
             // prompt for password
             cli_flow::prompt("Password:", false);

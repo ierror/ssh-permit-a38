@@ -36,6 +36,7 @@ fmt:
 	cargo fmt
 
 pre_release:
+	sed -ibak 's/^version = ".*"$$/version = "$(VERSION)"/' Cargo.toml
 	sed '/^```$$/d;' examples/commands.md > examples/commands.txt
 
 run:
@@ -60,9 +61,7 @@ build_linux_i686:
 	vagrant ssh -c "cd /src && make build;" linux_i686 && \
 	vagrant halt linux_i686
 
-release: clean pre_release
-	sed -ibak 's/^version = ".*"$$/version = "$(VERSION)"/' Cargo.toml
-
+release: clean pre_release build_linux_x86_64 build_linux_i686 build
 	# update release urls
 	sed -ibak 's/releases\/download\/v.*?\/ssh-permit-a38-v.*?-/releases\/download\/v$(VERSION)\/ssh-permit-a38-v$(VERSION)-/' README.md
 	# update release version an date
