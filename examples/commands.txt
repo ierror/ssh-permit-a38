@@ -38,6 +38,9 @@ User
 ## new user
 ssh-permit-a38 user obelix add
 
+## new user non-interactive
+ssh-permit-a38 user obelix add "ssh-rsa ABC...xyz obelix@gaul.fr"
+
 ## list all users
 ssh-permit-a38 user list
 

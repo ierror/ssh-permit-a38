@@ -2,24 +2,28 @@ use cli_flow;
 use database::{Database, User};
 use std::io;
 
-pub fn add(db: &mut Database, user_id: &str) {
+pub fn add(db: &mut Database, user_id: &str, pkey: &str) {
     // check user is not present
     if db.user_get(user_id).is_some() {
         cli_flow::errorln(&format!("User {} already exists", user_id));
     }
 
-    // read public key
-    cli_flow::promptln(&format!(
-        "Paste the public key of {} and press the Enter key:",
-        user_id
-    ));
-
     let mut public_key = String::new();
-    io::stdin()
-        .read_line(&mut public_key)
-        .ok()
-        .expect("Couldn't read public key");
 
+    if pkey.len() > 0 {
+        public_key = pkey.to_string();
+    } else {
+        // read public key
+        cli_flow::promptln(&format!(
+            "Paste the public key of {} and press the Enter key:",
+            user_id
+        ));
+
+        io::stdin()
+            .read_line(&mut public_key)
+            .ok()
+            .expect("Couldn't read public key");
+    }
     // TODO:; daring assumption, validate...
     if !public_key.starts_with("ssh-") {
         cli_flow::errorln("Invalid public ssh key format")
