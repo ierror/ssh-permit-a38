@@ -46,6 +46,9 @@ pub fn remove(db: &mut Database, user_id: &str) {
 
     // delete user from hosts.authorized_users
     for host in &mut db.hosts {
+        if (host.authorized_users.contains(&user_id.to_string())) {
+            host.sync_todo = true;
+        }
         host.authorized_users.retain(move |u| u != user_id);
     }
 
