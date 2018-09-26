@@ -88,9 +88,13 @@ fn main() {
                 .index(1))
                 .alias("users")
 
-                // user <user> add
+                // user <user> add [<sshkey>]
                 .subcommand(
                     SubCommand::with_name("add")
+                        .arg(Arg::with_name("pubkey")
+                            .help("User")
+                            .index(1)
+                            .required(false))
                 )
                 // user <user> remove
                 .subcommand(
@@ -253,8 +257,9 @@ fn main() {
     else if let Some(matches) = matches.subcommand_matches("user") {
         let user_id = matches.value_of("user").unwrap_or("");
 
-        if matches.subcommand_matches("add").is_some() {
-            subcommand_user::add(&mut db, &user_id);
+        if let Some(matches) = matches.subcommand_matches("add") {
+            let pubkey = matches.value_of("pubkey").unwrap_or("");
+            subcommand_user::add(&mut db, &user_id, &pubkey);
         } else if matches.subcommand_matches("remove").is_some() {
             subcommand_user::remove(&mut db, &user_id);
         } else if let Some(matches) = matches.subcommand_matches("list") {
